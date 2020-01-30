@@ -1,0 +1,17 @@
+{
+  "name": "firebase",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "frontend:build": "cd angular && npm run build:prod",
+    "frontend:watch": "cd angular && npm run start",
+    "firease:deploy": "firebase deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "do-wrapper": "^4.0.0-alpha.1"
+  }
+}
