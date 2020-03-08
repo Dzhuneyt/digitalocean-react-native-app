@@ -8,13 +8,16 @@ const digO = new DigitalOcean();
 
 export class DropletsList extends React.Component<any, any> {
     state = {
-        droplets: []
+        droplets: [],
+        refreshing: false,
     };
 
     render() {
         return <>
             <View style={{flex: 1}}>
                 <FlatList
+                    onRefresh={() => this.refresh()}
+                    refreshing={this.state.refreshing}
                     data={this.state.droplets}
                     keyExtractor={item => "" + item.id}
                     ItemSeparatorComponent={Divider}
@@ -24,12 +27,24 @@ export class DropletsList extends React.Component<any, any> {
         </>;
     }
 
-    async componentDidMount(): void {
+    async refresh() {
+        this.setState({
+            refreshing: true,
+        });
+        console.log('Refreshing droplets...');
         const droplets = await digO.getDroplets();
         this.setState({
             droplets: droplets.sort((a, b) => {
                 return a.created_at - b.created_at;
             }).reverse(),
         });
+        console.log('Droplets refreshed');
+        this.setState({
+            refreshing: false,
+        });
+    }
+
+    async componentDidMount(): void {
+        await this.refresh();
     }
 }
