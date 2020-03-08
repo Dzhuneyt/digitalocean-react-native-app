@@ -18,7 +18,7 @@ export class DigitalOcean {
     async getDroplets(): [] {
         const res = await this.axios.get('droplets');
         const droplets = res.data.droplets;
-        console.log(`Retrieved droplets`, droplets);
+        // console.log(`Retrieved droplets`, droplets);
         return droplets
     }
 }
