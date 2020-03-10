@@ -20,7 +20,6 @@ export class DropletsList extends React.Component<any, any> {
                     refreshing={this.state.refreshing}
                     data={this.state.droplets}
                     keyExtractor={item => "" + item.id}
-                    ItemSeparatorComponent={Divider}
                     renderItem={({item}) => <DropletsSingle {...item}/>}
                 />
             </View>
