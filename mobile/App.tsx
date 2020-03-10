@@ -9,32 +9,11 @@
  */
 
 import React from 'react';
-import {
-    SafeAreaView,
-    StyleSheet,
-    ScrollView,
-    View,
-    Text,
-    StatusBar, FlatList,
-} from 'react-native';
-
-import {
-    Header,
-    LearnMoreLinks,
-    Colors,
-    DebugInstructions,
-    ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import axios from "axios";
-import {DigitalOcean} from "./src/digital-ocean";
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {DropletsList} from "./src/droplets-list";
 
-declare var global: { HermesInternal: null | {} };
-
 const Stack = createStackNavigator();
-
 
 class App extends React.Component<any, any> {
     render() {

@@ -1,10 +1,10 @@
 import React from "react";
 import {FlatList, StatusBar, Text, View} from "react-native";
-import {DigitalOcean} from "./digital-ocean";
+import {DigitalOceanService} from "./digital-ocean.service";
 import {DropletsSingle} from "./droplets-single";
 import {Divider} from 'react-native-elements';
 
-const digO = new DigitalOcean();
+const digO = new DigitalOceanService();
 
 export class DropletsList extends React.Component<any, any> {
     state = {

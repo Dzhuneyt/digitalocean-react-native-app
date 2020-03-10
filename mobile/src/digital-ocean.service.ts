@@ -2,23 +2,27 @@ import axios, {AxiosInstance} from "axios";
 
 const DIGITALOCEAN_TOKEN = '3676e424eb211ab2177e9a22429d8b2fb543ac641786b29d9635232defdb0703';
 
-export class DigitalOcean {
+export class DigitalOceanService {
     private readonly baseUrl = 'https://api.digitalocean.com/v2/';
 
     private axios: AxiosInstance;
+
+    public apiToken = DIGITALOCEAN_TOKEN;
 
     constructor() {
         this.axios = axios.create({
             baseURL: this.baseUrl,
             timeout: 5000,
-            headers: {'Authorization': `Bearer ${DIGITALOCEAN_TOKEN}`}
+        });
+        this.axios.interceptors.request.use(value => {
+            // Attach DO token to every request
+            value.headers['Authorization'] = `Bearer ${this.apiToken}`;
+            return value;
         });
     }
 
-    async getDroplets(): [] {
+    async getDroplets(): Promise<[]> {
         const res = await this.axios.get('droplets');
-        const droplets = res.data.droplets;
-        // console.log(`Retrieved droplets`, droplets);
-        return droplets
+        return res.data.droplets;
     }
 }
