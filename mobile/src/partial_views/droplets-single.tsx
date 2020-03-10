@@ -1,8 +1,7 @@
-import React, {RefObject} from "react";
+import React from "react";
 import {StyleSheet, Text, View} from "react-native";
 import TimeAgo from 'react-native-timeago';
-import Circle from "./circle";
-import {Button, Card, Icon} from "react-native-elements";
+import {Card, Icon} from "react-native-elements";
 
 interface SingleDroplet {
     // @see https://developers.digitalocean.com/documentation/v2/#list-all-droplets for all possible value
@@ -17,7 +16,7 @@ interface SingleDroplet {
     status: "new" | "active" | "off" | "archive";
 }
 
-function getIpV4(networks: Object) {
+function getIpV4(networks: any) {
     const ips: any[] = [];
     if (!networks.hasOwnProperty('v4')) {
         return "";
@@ -37,27 +36,9 @@ const humanFriendlySize = function (bytes: number) {
 };
 
 export class DropletsSingle extends React.Component<SingleDroplet, any> {
-    props: SingleDroplet;
-
     state = {isOpen: false};
 
     render() {
-        let dropletColor = "red";
-
-        switch (this.props.status) {
-            case "active":
-                dropletColor = "green";
-                break;
-            case "new":
-                dropletColor = "grey";
-                break;
-            case "off":
-                dropletColor = "red";
-                break;
-            case "archive":
-                dropletColor = "grey";
-                break;
-        }
         return (
             <>
                 <Card>
