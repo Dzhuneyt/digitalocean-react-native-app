@@ -24,8 +24,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
-      - run: echo $GITHUB_WORKSPACE
+
       - name: Install depdencies
         run: cd $GITHUB_WORKSPACE/mobile/android && npm i --no-audit
+
+      - name: Increment version
+        run: export ANDROID_APK_VERSION=$(expr $(date +%s) / 10) && echo $ANDROID_APK_VERSION
+
       - name: Build with Gradle
         run: cd $GITHUB_WORKSPACE/mobile/android && ./gradlew build
