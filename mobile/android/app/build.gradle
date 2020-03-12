@@ -152,8 +152,8 @@ android {
         release{
             storeFile file('release.keystore')
             keyAlias 'digitalocean'
-            keyPassword ''
-            storePassword 'CHANGEME'
+            keyPassword System.getenv('KEYSTORE_PASSWORD')
+            storePassword System.getenv('KEYSTORE_PASSWORD')
         }
     }
     buildTypes {
