@@ -13,20 +13,14 @@ import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {DropletsList} from "./src/screens/droplets-list";
 import {Login} from "./src/screens/login";
+import {FlatList, StatusBar, Text, View} from "react-native";
 import AsyncStorage from "@react-native-community/async-storage";
 import {Button} from "react-native";
-import {Text} from "react-native-elements";
 import RNRestart from 'react-native-restart';
 import {DigitalOceanService} from "./src/services/digital-ocean.service";
 
 const Stack = createStackNavigator();
 const digitalOceanService = new DigitalOceanService();
-
-const logout = () => {
-    AsyncStorage.removeItem('digitalocean_token').then(value => {
-        RNRestart.Restart()
-    });
-};
 
 class App extends React.Component<any, any> {
     state = {
@@ -43,16 +37,7 @@ class App extends React.Component<any, any> {
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={this.state.initialScreen}>
                         <Stack.Screen name="Login" component={Login}/>
-                        <Stack.Screen name="Droplets" component={DropletsList}
-                                      options={{
-                                          headerRight: () => (
-                                              <Text
-                                                  style={{marginRight: 10}}
-                                                  onPress={() => logout()}
-                                              >Logout</Text>
-                                          ),
-                                      }}
-                        />
+                        <Stack.Screen name="Droplets" component={DropletsList}/>
                     </Stack.Navigator>
                 </NavigationContainer>
             </>

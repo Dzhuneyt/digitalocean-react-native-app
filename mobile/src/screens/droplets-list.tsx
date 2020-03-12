@@ -1,22 +1,39 @@
 import React from "react";
-import {FlatList, StatusBar, Text, View} from "react-native";
+import {Button, FlatList, StatusBar, Text, View} from "react-native";
 import {DropletsSingle} from "../partial_views/droplets-single";
 import AsyncStorage from "@react-native-community/async-storage";
-import {DigitalOceanService} from "../services/digital-ocean.service";
+import RNRestart from "react-native-restart";
+import {Overlay} from 'react-native-elements';
+import {DropletCreate} from "./droplet-create";
+import {DropletsService} from "../services/droplets.service";
 
-const digitalOceanService = new DigitalOceanService();
+const dropletsService = new DropletsService();
+
+const logout = () => {
+    AsyncStorage.removeItem('digitalocean_token').then(value => {
+        RNRestart.Restart()
+    });
+};
+const createDroplet = () => {
+    console.log('Creating droplet');
+};
 
 export class DropletsList extends React.Component<any, any> {
     state = {
         droplets: [],
         refreshing: false,
+        createDropletDialogVisible: false,
     };
 
     render() {
-
-
         return <>
             <View style={{flex: 1}}>
+                <Overlay
+                    isVisible={this.state.createDropletDialogVisible}
+                    onBackdropPress={() => this.setState({createDropletDialogVisible: false})}
+                >
+                    <DropletCreate/>
+                </Overlay>
                 <FlatList
                     onRefresh={() => this.refresh()}
                     refreshing={this.state.refreshing}
@@ -33,7 +50,7 @@ export class DropletsList extends React.Component<any, any> {
             refreshing: true,
         });
         console.log('Refreshing droplets...');
-        const droplets = await digitalOceanService.getDroplets();
+        const droplets = await dropletsService.getDroplets();
         this.setState({
             droplets: droplets.sort((a: any, b: any) => {
                 return a.created_at - b.created_at;
@@ -46,6 +63,31 @@ export class DropletsList extends React.Component<any, any> {
     }
 
     async componentDidMount(): Promise<void> {
+        this.props.navigation.setOptions({
+            headerRight: () => (
+                <View style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignContent: "center",
+                    alignSelf: "center"
+                }}>
+                    <Text
+                        style={{
+                            marginRight: 10,
+                            alignSelf: 'center'
+                        }}
+                        onPress={() => this.setState({createDropletDialogVisible: true})}
+                    >Create new droplet</Text>
+                    <Text
+                        style={{
+                            marginRight: 10,
+                            alignSelf: 'center'
+                        }}
+                        onPress={() => logout()}
+                    >Logout</Text>
+                </View>
+            ),
+        });
 
         AsyncStorage.getItem('digitalocean_token').then(value => {
             if (!value) {
