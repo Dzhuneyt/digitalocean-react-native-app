@@ -15,5 +15,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - run: echo $GITHUB_WORKSPACE
+    - name: Install depdencies
+      run: cd mobile/android && npm i --no-audit
     - name: Build with Gradle
       run: cd mobile/android && ./gradlew build
