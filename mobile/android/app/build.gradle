@@ -127,12 +127,17 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    def date = new Date()
+    def formattedDate = date.format('yyMMddHHmm')
+    def code = formattedDate.toInteger()
+
     defaultConfig {
         applicationId "com.digitaloceanui"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+
+        versionCode code
+        versionName "latest"
     }
     splits {
         abi {
