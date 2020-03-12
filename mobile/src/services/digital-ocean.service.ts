@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-community/async-storage";
 const DIGITALOCEAN_TOKEN = '3676e424eb211ab2177e9a22429d8b2fb543ac641786b29d9635232defdb0703';
 
 export class DigitalOceanService {
-    private readonly baseUrl = 'https://api.digitalocean.com/v2/';
+    protected readonly baseUrl = 'https://api.digitalocean.com/v2/';
 
     protected axios: AxiosInstance;
 
@@ -20,7 +20,6 @@ export class DigitalOceanService {
             return value;
         });
     }
-
 
     async getRegions() {
         return await this.axios.get('regions');

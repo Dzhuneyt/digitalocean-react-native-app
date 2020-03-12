@@ -5,7 +5,7 @@
   "scripts": {
     "android": "npx react-native run-android",
     "ios": "react-native run-ios",
-    "start": "npx concurrently 'DIGITALOCEAN_TOKEN=123 npx react-native start' 'npm run android'",
+    "start": "npx concurrently -n metro,android 'npx react-native start' 'npm run android'",
     "test": "jest",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
