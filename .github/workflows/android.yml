@@ -30,6 +30,8 @@ jobs:
 
       - name: Build with Gradle
         run: cd $GITHUB_WORKSPACE/mobile/android && ./gradlew bundleRelease
+        env:
+          - KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
 
       - uses: actions/upload-artifact@v1
         with:
