@@ -29,4 +29,9 @@ jobs:
         run: cd $GITHUB_WORKSPACE/mobile/android && npm i --no-audit
 
       - name: Build with Gradle
-        run: cd $GITHUB_WORKSPACE/mobile/android && ./gradlew build
+        run: cd $GITHUB_WORKSPACE/mobile/android && ./gradlew bundleRelease
+
+      - uses: actions/upload-artifact@v1
+        with:
+          name: release.apk
+          path: $GITHUB_WORKSPACE/mobile/android/app/build/outputs/apk/release/app-release.apk
