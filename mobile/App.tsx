@@ -11,16 +11,16 @@
 import React from 'react';
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
-import {DropletsList} from "./src/screens/droplets-list";
+import {DropletsList} from "./src/screens/droplets/droplets-list";
 import {Login} from "./src/screens/login";
 import {FlatList, StatusBar, Text, View} from "react-native";
 import AsyncStorage from "@react-native-community/async-storage";
 import {Button} from "react-native";
 import RNRestart from 'react-native-restart';
-import {DigitalOceanService} from "./src/services/digital-ocean.service";
+import {DigitalOceanBaseService} from "./src/services/digitalOceanBaseService";
 
 const Stack = createStackNavigator();
-const digitalOceanService = new DigitalOceanService();
+const digitalOceanService = new DigitalOceanBaseService();
 
 class App extends React.Component<any, any> {
     state = {

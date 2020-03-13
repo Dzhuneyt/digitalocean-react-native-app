@@ -20,6 +20,8 @@
     "@types/react-select": "^3.0.10",
     "axios": "^0.19.2",
     "concurrently": "^5.1.0",
+    "digitalocean": "^1.2.0",
+    "dots-wrapper": "^3.1.5",
     "moment": "^2.24.0",
     "prop-types": "^15.7.2",
     "react": "16.9.0",

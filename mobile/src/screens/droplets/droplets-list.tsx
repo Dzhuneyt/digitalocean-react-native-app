@@ -1,13 +1,13 @@
 import React from "react";
 import {Button, FlatList, StatusBar, Text, View} from "react-native";
-import {DropletsSingle} from "../partial_views/droplets-single";
+import {DropletsSingle} from "../../partial_views/droplets-single";
 import AsyncStorage from "@react-native-community/async-storage";
 import RNRestart from "react-native-restart";
 import {Overlay} from 'react-native-elements';
 import {DropletCreate} from "./droplet-create";
-import {DropletsService} from "../services/droplets.service";
+import {DigitalOceanDropletsService} from "../../services/digitalOceanDropletsService";
 
-const dropletsService = new DropletsService();
+const dropletsService = new DigitalOceanDropletsService();
 
 const logout = () => {
     AsyncStorage.removeItem('digitalocean_token').then(value => {
@@ -29,6 +29,7 @@ export class DropletsList extends React.Component<any, any> {
         return <>
             <View style={{flex: 1}}>
                 <Overlay
+                    fullScreen={true}
                     isVisible={this.state.createDropletDialogVisible}
                     onBackdropPress={() => this.setState({createDropletDialogVisible: false})}
                 >
