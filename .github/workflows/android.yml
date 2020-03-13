@@ -29,18 +29,10 @@ jobs:
         run: cd $GITHUB_WORKSPACE/mobile/android && npm i --no-audit
 
       - name: Build with Gradle
-        run: cd $GITHUB_WORKSPACE/mobile/android && pwd && ./gradlew build
+        run: cd $GITHUB_WORKSPACE/mobile/android && ./gradlew build
         env:
           KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
-      - run: pwd
-      - run: ls mobile
-      - run: ls mobile/android
-      - run: ls mobile/android/app
-      - run: ls mobile/android/app/build
-      - run: ls mobile/android/app/build/outputs
-      - run: ls mobile/android/app/build/outputs/apk
-      - run: ls mobile/android/app/build/outputs/apk/release
       - uses: actions/upload-artifact@v1
         with:
           name: release.apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: mobile/android/app/build/outputs/apk/release/app-release.apk
