@@ -33,6 +33,7 @@ jobs:
         env:
           KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
 
+      - run: ls /mobile/android/app/build/outputs/apk/release
       - uses: actions/upload-artifact@v1
         with:
           name: release.apk
