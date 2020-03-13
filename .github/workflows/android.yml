@@ -29,7 +29,7 @@ jobs:
         run: cd $GITHUB_WORKSPACE/mobile/android && npm i --no-audit
 
       - name: Build with Gradle
-        run: cd $GITHUB_WORKSPACE/mobile/android && pwd && ./gradlew bundleRelease
+        run: cd $GITHUB_WORKSPACE/mobile/android && pwd && ./gradlew build
         env:
           KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
       - run: pwd
