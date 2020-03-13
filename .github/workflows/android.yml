@@ -32,7 +32,7 @@ jobs:
         run: cd $GITHUB_WORKSPACE/mobile/android && ./gradlew bundleRelease
         env:
           KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
-
+      - run: pwd
       - run: ls app/build/outputs/apk/release
       - uses: actions/upload-artifact@v1
         with:
