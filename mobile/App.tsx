@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-community/async-storage";
 import {Button} from "react-native";
 import RNRestart from 'react-native-restart';
 import {DigitalOceanBaseService} from "./src/services/digitalOceanBaseService";
+import firebase from '@react-native-firebase/app';
 
 const Stack = createStackNavigator();
 const digitalOceanService = new DigitalOceanBaseService();

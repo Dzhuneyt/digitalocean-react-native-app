@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "977686881610",
+    "firebase_url": "https://digitalocean-ui.firebaseio.com",
+    "project_id": "digitalocean-ui",
+    "storage_bucket": "digitalocean-ui.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977686881610:android:61c147ad80754f1da5cdb3",
+        "android_client_info": {
+          "package_name": "com.digitaloceanui"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "977686881610-v5vfcskmkg1u2g0h63j1rq1d5ubgmpqn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArvBAt0TntTsvq8BXNQ9vUR_fhgvY55K0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "977686881610-v5vfcskmkg1u2g0h63j1rq1d5ubgmpqn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

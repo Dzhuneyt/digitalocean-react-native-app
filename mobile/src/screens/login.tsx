@@ -2,6 +2,7 @@ import React, {Component} from "react";
 import {Linking, Text} from "react-native";
 import AsyncStorage from '@react-native-community/async-storage';
 import {Button, Card, Icon, Input} from "react-native-elements";
+import auth from '@react-native-firebase/auth';
 
 export class Login extends Component<{
     // Props
@@ -28,6 +29,12 @@ export class Login extends Component<{
 
     render() {
         return <>
+
+            <Button
+                title="Login"
+                onPress={() => this.login()}
+            />
+
             <Card>
                 <Text style={{textAlign: 'center'}}>Please enter your DigitalOcean API token below</Text>
                 <Input
@@ -75,5 +82,14 @@ export class Login extends Component<{
                 this.props.navigation.replace("Droplets", {name: 'Droplets'});
             }
         })
+    }
+
+
+    async login() {
+        try {
+            await auth().signInWithEmailAndPassword('example@example.com', '123456');
+        } catch (e) {
+            console.error(e.message);
+        }
     }
 }
