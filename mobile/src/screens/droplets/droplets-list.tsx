@@ -6,6 +6,9 @@ import RNRestart from "react-native-restart";
 import {Overlay} from 'react-native-elements';
 import {DropletCreate} from "./droplet-create";
 import {DigitalOceanDropletsService} from "../../services/digitalOceanDropletsService";
+import auth from '@react-native-firebase/auth';
+import database from '@react-native-firebase/database';
+import firestore from '@react-native-firebase/firestore';
 
 const dropletsService = new DigitalOceanDropletsService();
 
@@ -90,13 +93,15 @@ export class DropletsList extends React.Component<any, any> {
             ),
         });
 
-        AsyncStorage.getItem('digitalocean_token').then(value => {
+        dropletsService.getCurrentDigitaloceanToken().then(value => {
             if (!value) {
                 this.props.navigation.replace('Login' as any, {name: 'Login'} as any);
+                return;
             } else {
-                this.refresh().then(value1 => {
-                });
+                this.refresh().then();
             }
-        })
+        });
     }
+
+
 }
