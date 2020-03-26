@@ -12,13 +12,14 @@ import React from 'react';
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import {DropletsList} from "./src/screens/droplets/droplets-list";
-import {Login} from "./src/screens/login";
+import {ConfigureDigitalOceanToken} from "./src/screens/configureDigitalOceanToken";
 import {FlatList, StatusBar, Text, View} from "react-native";
 import AsyncStorage from "@react-native-community/async-storage";
 import {Button} from "react-native";
 import RNRestart from 'react-native-restart';
 import {DigitalOceanBaseService} from "./src/services/digitalOceanBaseService";
 import firebase from '@react-native-firebase/app';
+import {Login} from "./src/screens/Login";
 
 const Stack = createStackNavigator();
 const digitalOceanService = new DigitalOceanBaseService();
@@ -38,6 +39,7 @@ class App extends React.Component<any, any> {
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={this.state.initialScreen}>
                         <Stack.Screen name="Login" component={Login}/>
+                        <Stack.Screen name="ConfigureDigitalOceanToken" component={ConfigureDigitalOceanToken}/>
                         <Stack.Screen name="Droplets" component={DropletsList}/>
                     </Stack.Navigator>
                 </NavigationContainer>

@@ -7,7 +7,7 @@ import auth from '@react-native-firebase/auth';
 import database from '@react-native-firebase/database';
 import firestore from '@react-native-firebase/firestore';
 
-export class Login extends Component<{
+export class ConfigureDigitalOceanToken extends Component<{
     // Props
     navigation: any
 }, {
@@ -28,9 +28,6 @@ export class Login extends Component<{
         });
 
         this.props.navigation.replace("Droplets", {name: 'Droplets'});
-        // AsyncStorage.setItem('digitalocean_token', this.state.token).then(value => {
-        //     this.props.navigation.replace("Droplets", {name: 'Droplets'});
-        // });
     }
 
     openCreateTokenWebpage() {
@@ -40,15 +37,10 @@ export class Login extends Component<{
 
     render() {
         return <>
-
-            <Button
-                title="Login"
-                onPress={() => this.login()}
-            />
-
             <Card>
                 <Text style={{textAlign: 'center'}}>Please enter your DigitalOcean API token below</Text>
                 <Input
+                    value={this.state.token}
                     leftIcon={<Icon
                         type='font-awesome'
                         name='lock'
@@ -70,52 +62,38 @@ export class Login extends Component<{
                     onPress={() => this.saveToken()}
                 />
 
+                <Button
+                    containerStyle={{
+                        marginTop: 20
+                    }}
+                    buttonStyle={{
+                        backgroundColor: '#aaa'
+                    }}
+                    title="Create an API token"
+                    onPress={() => this.openCreateTokenWebpage()}
+                />
+
             </Card>
-
-
-            <Button
-                containerStyle={{
-                    margin: 20
-                }}
-                buttonStyle={{
-                    backgroundColor: '#aaa'
-                }}
-                title="Create an API token"
-                onPress={() => this.openCreateTokenWebpage()}
-            />
         </>
             ;
     }
 
     async componentDidMount(): Promise<any> {
-        AsyncStorage.getItem('digitalocean_token').then(value => {
-            if (value) {
-                this.props.navigation.replace("Droplets", {name: 'Droplets'});
-            }
-        });
+        if (!auth().currentUser) {
+            this.props.navigation.replace("Login", {name: 'Login'});
+            return false;
+        }
+
+        // AsyncStorage.getItem('digitalocean_token').then(value => {
+        //     if (value) {
+        //         this.props.navigation.replace("Droplets", {name: 'Droplets'});
+        //     }
+        // });
 
         const currentToken = await this.getCurrentDigitaloceanToken();
         this.setState({
             token: currentToken,
         })
-    }
-
-
-    async login() {
-        try {
-            await auth().signInWithEmailAndPassword('example@example.com', '123456');
-            console.log('logged in');
-            Snackbar.show({
-                text: 'Succesful login',
-                duration: Snackbar.LENGTH_SHORT,
-            });
-        } catch (e) {
-            console.error(e.message);
-            Snackbar.show({
-                text: 'Invalid credentials',
-                duration: Snackbar.LENGTH_SHORT,
-            });
-        }
     }
 
     async getCurrentDigitaloceanToken() {
