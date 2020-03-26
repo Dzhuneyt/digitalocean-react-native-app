@@ -12,10 +12,11 @@ import firestore from '@react-native-firebase/firestore';
 
 const dropletsService = new DigitalOceanDropletsService();
 
-const logout = () => {
-    AsyncStorage.removeItem('digitalocean_token').then(value => {
+const logout = async () => {
+    await auth().signOut();
+    // AsyncStorage.removeItem('digitalocean_token').then(value => {
         RNRestart.Restart()
-    });
+    // });
 };
 const createDroplet = () => {
     console.log('Creating droplet');
