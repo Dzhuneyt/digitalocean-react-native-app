@@ -11,22 +11,18 @@
 import React from 'react';
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
-import {DropletsList} from "./src/screens/droplets/droplets-list";
-import {ConfigureDigitalOceanToken} from "./src/screens/configureDigitalOceanToken";
-import {FlatList, StatusBar, Text, View} from "react-native";
 import AsyncStorage from "@react-native-community/async-storage";
-import {Button} from "react-native";
-import RNRestart from 'react-native-restart';
-import {DigitalOceanBaseService} from "./src/services/digitalOceanBaseService";
-import firebase from '@react-native-firebase/app';
-import {Login} from "./src/screens/Login";
+import {Login} from "./src/components/Login";
+import {DropletList} from "./src/components/droplets/DropletList";
+import {ConfigureDigitalOceanToken} from "./src/components/ConfigureDigitalOceanToken";
 
 const Stack = createStackNavigator();
-const digitalOceanService = new DigitalOceanBaseService();
 
 class App extends React.Component<any, any> {
     state = {
         initialScreen: '',
+
+        // Before this is set to true, the app shows nothing
         readyToRender: false
     };
 
@@ -38,9 +34,21 @@ class App extends React.Component<any, any> {
             <>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={this.state.initialScreen}>
-                        <Stack.Screen name="Login" component={Login}/>
-                        <Stack.Screen name="ConfigureDigitalOceanToken" component={ConfigureDigitalOceanToken}/>
-                        <Stack.Screen name="Droplets" component={DropletsList}/>
+                        <Stack.Screen
+                            name="Login"
+                            component={Login}
+                            options={{title: 'Login'}}
+                        />
+                        <Stack.Screen
+                            name="ConfigureDigitalOceanToken"
+                            component={ConfigureDigitalOceanToken}
+                            options={{title: 'DigitalOcean Accounts'}}
+                        />
+                        <Stack.Screen
+                            name="Droplets"
+                            component={DropletList}
+                            options={{title: 'Droplets'}}
+                        />
                     </Stack.Navigator>
                 </NavigationContainer>
             </>
@@ -48,6 +56,7 @@ class App extends React.Component<any, any> {
     }
 
     componentDidMount(): void {
+        // @TODO Get logged in state
         AsyncStorage.getItem('digitalocean_token').then(value => {
             if (!value) {
                 this.setState({

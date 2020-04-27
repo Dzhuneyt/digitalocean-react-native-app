@@ -1,28 +1,25 @@
 import React from "react";
-import {Button, FlatList, StatusBar, Text, View} from "react-native";
+import {FlatList, Text, View} from "react-native";
 import {DropletsSingle} from "../../partial_views/droplets-single";
-import AsyncStorage from "@react-native-community/async-storage";
 import RNRestart from "react-native-restart";
 import {Overlay} from 'react-native-elements';
 import {DropletCreate} from "./droplet-create";
 import {DigitalOceanDropletsService} from "../../services/digitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
-import database from '@react-native-firebase/database';
-import firestore from '@react-native-firebase/firestore';
 
 const dropletsService = new DigitalOceanDropletsService();
 
 const logout = async () => {
     await auth().signOut();
     // AsyncStorage.removeItem('digitalocean_token').then(value => {
-        RNRestart.Restart()
+    RNRestart.Restart()
     // });
 };
 const createDroplet = () => {
     console.log('Creating droplet');
 };
 
-export class DropletsList extends React.Component<any, any> {
+export class DropletList extends React.Component<any, any> {
     state = {
         droplets: [],
         refreshing: false,

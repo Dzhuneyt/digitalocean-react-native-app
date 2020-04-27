@@ -32,6 +32,9 @@ export class Login extends Component<any, any> {
         }
     }
 
+    /**
+     * Do the actual API call to login and redirect to
+     */
     async login() {
         try {
             await auth().signInWithEmailAndPassword(this.state.username, this.state.password);

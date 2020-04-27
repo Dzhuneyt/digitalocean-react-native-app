@@ -73,7 +73,6 @@ export class DropletCreate extends Component {
                     placeholder='e.g. ubuntu-2020-03-15'
                 />
 
-
                 <Picker
                     style={styles.picker}
                     mode="dropdown"
