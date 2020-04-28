@@ -12,10 +12,14 @@ export class DigitalOceanBaseService {
         per_page: 100,
         page: 0,
     };
+    protected readonly token: string = '';
+
+    constructor(token: string) {
+        this.token = token;
+    }
 
     public async getClient() {
-        // const token = <string>await AsyncStorage.getItem('digitalocean_token');
-        const token = await this.getCurrentDigitaloceanToken();
+        const token = this.token ? this.token : await this.getCurrentDigitaloceanToken();
         return createApiClient({token});
     }
 

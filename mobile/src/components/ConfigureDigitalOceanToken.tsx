@@ -4,6 +4,7 @@ import {Button, Card, Overlay} from "react-native-elements";
 import auth from '@react-native-firebase/auth';
 import {DigitalOceanTokenCreateSingle} from "./DigitalOceanTokenCreateSingle";
 import firestore from "@react-native-firebase/firestore";
+import {getAlias} from "../helpers/digitalocean";
 
 interface DigitalOceanToken {
     alias: string;
@@ -62,7 +63,7 @@ export class ConfigureDigitalOceanToken extends React.Component<{
                 keyExtractor={(item: DigitalOceanToken) => String(item.alias)}
                 renderItem={({item}) => <>
                     <Card>
-                        <TouchableHighlight onPress={() => this.manageDropletsForAccount(item.alias)}>
+                        <TouchableHighlight onPress={() => this.goToDropletListingForAlias(item.alias)}>
                             <Text>{item.alias}</Text>
                         </TouchableHighlight>
                     </Card>
@@ -83,29 +84,35 @@ export class ConfigureDigitalOceanToken extends React.Component<{
         const globalCollectionForTokens = firestore()
             .collection('digitalocean_tokens');
 
-        const currentUserTokens = await globalCollectionForTokens
-            .doc(userUUID)
-            .collection("tokens");
-
         // Listen for changes on the Firestore and update the list in the UI
-        currentUserTokens.onSnapshot(snapshot => {
-            const droplets: DigitalOceanToken[] = [];
-            snapshot.forEach(item => {
-                const obj: DigitalOceanToken = {
-                    alias: item.ref.id,
-                    token: item.get('token'),
-                };
-                if (item.get('created_at')) {
-                    obj.created_at = item.get('created_at');
+        const currentUserTokens = globalCollectionForTokens
+            .doc(userUUID)
+            .collection("tokens")
+            .onSnapshot(snapshot => {
+                if (!snapshot) {
+                    this.setState({
+                        droplets: [],
+                    });
+                    return;
                 }
-                droplets.push(obj);
-
-                this.setState({
-                    droplets,
+                const droplets: DigitalOceanToken[] = [];
+                snapshot.forEach(item => {
+                    const obj: DigitalOceanToken = {
+                        alias: item.ref.id,
+                        token: item.get('token'),
+                    };
+                    if (item.get('created_at')) {
+                        obj.created_at = item.get('created_at');
+                    }
+                    droplets.push(obj);
+                    this.setState({
+                        droplets,
+                    });
                 });
+                console.log(droplets);
+            }, error => {
+                console.log(error);
             });
-            console.log(droplets);
-        })
     }
 
     async componentDidMount(): Promise<any> {
@@ -117,26 +124,11 @@ export class ConfigureDigitalOceanToken extends React.Component<{
         await this.getCurrentTokens();
     }
 
-    async manageDropletsForAccount(alias: string) {
-        console.log(alias);
-        const currentUser = auth().currentUser;
-
-        if (!currentUser) {
-            throw new Error('Failed to get current user');
-        }
-
-        const userUUID = currentUser.uid;
-        const globalCollectionForTokens = firestore()
-            .collection('digitalocean_tokens');
-
-        const currentUserTokens = await globalCollectionForTokens
-            .doc(userUUID)
-            .collection("tokens");
-
-        const doc = await currentUserTokens.doc(alias).get();
-        console.log(doc);
-
-        this.props.navigation.replace("Login", {name: 'Login'});
+    async goToDropletListingForAlias(alias: string) {
+        const doc = await getAlias(alias);
+        this.props.navigation.navigate("Droplets", {
+            alias: doc.ref.id,
+        });
     }
 
     // async getCurrentDigitaloceanToken() {
