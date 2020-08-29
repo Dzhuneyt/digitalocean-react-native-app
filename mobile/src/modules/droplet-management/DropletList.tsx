@@ -1,22 +1,18 @@
 import React from "react";
 import {FlatList, Text, View} from "react-native";
-import {DropletsSingle} from "../../partial_views/droplets-single";
 import RNRestart from "react-native-restart";
 import {Overlay} from 'react-native-elements';
-import {DropletCreate} from "./droplet-create";
-import {DigitalOceanDropletsService} from "../../services/digitalOceanDropletsService";
+import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
 import {getAlias} from "../../helpers/digitalocean";
-
+import {DropletCreate} from "./DropletCreate";
+import {SingleDropletCard} from "../../partial_views/single-droplet-card";
 
 const logout = async () => {
     await auth().signOut();
     // AsyncStorage.removeItem('digitalocean_token').then(value => {
     RNRestart.Restart()
     // });
-};
-const createDroplet = () => {
-    console.log('Creating droplet');
 };
 
 export class DropletList extends React.Component<{
@@ -35,6 +31,8 @@ export class DropletList extends React.Component<{
         currentApiToken: '',
     };
 
+    private _intervalForRefreshingUI: any;
+
     render() {
         return <>
             <View style={{flex: 1}}>
@@ -50,16 +48,19 @@ export class DropletList extends React.Component<{
                     refreshing={this.state.refreshing}
                     data={this.state.droplets}
                     keyExtractor={(item: any) => String(item.id)}
-                    renderItem={({item}) => <DropletsSingle {...item}/>}
+                    renderItem={({item}) => <SingleDropletCard {...item}/>}
                 />
             </View>
         </>;
     }
 
-    async refresh() {
-        this.setState({
-            refreshing: true,
-        });
+    async refresh(showInUI = true) {
+        if (showInUI) {
+            this.setState({
+                refreshing: true,
+            });
+        }
+
         console.log('Refreshing droplets...');
         const dropletsService = new DigitalOceanDropletsService(this.state.currentApiToken);
 
@@ -71,15 +72,19 @@ export class DropletList extends React.Component<{
                 }).reverse(),
             });
             console.log('Droplets refreshed');
-            this.setState({
-                refreshing: false,
-            });
+            if (showInUI) {
+                this.setState({
+                    refreshing: false,
+                });
+            }
         } catch (e) {
             console.log('Droplets failed to refresh');
             console.log(JSON.stringify(e));
-            this.setState({
-                refreshing: false,
-            });
+            if (showInUI) {
+                this.setState({
+                    refreshing: false,
+                });
+            }
         }
 
     }
@@ -122,16 +127,14 @@ export class DropletList extends React.Component<{
             currentApiToken: alias.get('token'),
         });
         await this.refresh();
-        //
-        // dropletsService.getCurrentDigitaloceanToken().then(value => {
-        //     if (!value) {
-        //         this.props.navigation.replace('Login' as any, {name: 'Login'} as any);
-        //         return;
-        //     } else {
-        //         this.refresh().then();
-        //     }
-        // });
+
+        // Refresh the droplet list every 10 seconds
+        this._intervalForRefreshingUI = setInterval(async () => {
+            await this.refresh(false);
+        }, 10000);
     }
 
-
+    componentWillUnmount() {
+        clearInterval(this._intervalForRefreshingUI);
+    }
 }

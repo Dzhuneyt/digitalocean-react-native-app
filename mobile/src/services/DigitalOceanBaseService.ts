@@ -14,8 +14,10 @@ export class DigitalOceanBaseService {
     };
     protected readonly token: string = '';
 
-    constructor(token: string) {
-        this.token = token;
+    constructor(token?: string) {
+        if (token) {
+            this.token = token;
+        }
     }
 
     public async getClient() {

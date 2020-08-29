@@ -12,9 +12,9 @@ import React from 'react';
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
 import AsyncStorage from "@react-native-community/async-storage";
-import {Login} from "./src/components/Login";
-import {DropletList} from "./src/components/droplets/DropletList";
-import {ConfigureDigitalOceanToken} from "./src/components/ConfigureDigitalOceanToken";
+import {DOAccountManager} from "./src/modules/auth/DOAccountManager";
+import {Login} from "./src/modules/auth/Login";
+import {DropletList} from "./src/modules/droplet-management/DropletList";
 
 const Stack = createStackNavigator();
 
@@ -40,8 +40,8 @@ class App extends React.Component<any, any> {
                             options={{title: 'Login'}}
                         />
                         <Stack.Screen
-                            name="ConfigureDigitalOceanToken"
-                            component={ConfigureDigitalOceanToken}
+                            name="DOAccountManager"
+                            component={DOAccountManager}
                             options={{title: 'DigitalOcean Accounts'}}
                         />
                         <Stack.Screen

@@ -1,6 +1,5 @@
-import {DigitalOceanBaseService} from "./digitalOceanBaseService";
+import {DigitalOceanBaseService} from "./DigitalOceanBaseService";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
-import {image} from "dots-wrapper/dist/modules";
 
 export class DigitalOceanDropletsService extends DigitalOceanBaseService {
 

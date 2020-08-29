@@ -2,19 +2,7 @@ import React from "react";
 import {StyleSheet, Text, View} from "react-native";
 import TimeAgo from 'react-native-timeago';
 import {Card, Icon} from "react-native-elements";
-
-interface SingleDroplet {
-    // @see https://developers.digitalocean.com/documentation/v2/#list-all-droplets for all possible value
-    image: { distribution: string, name: string };
-    region: { name: string, slug: string };
-    disk: number;
-    memory: number;
-    id: number;
-    name: string;
-    networks: {};
-    created_at: string;
-    status: "new" | "active" | "off" | "archive";
-}
+import {Droplet} from "../interfaces/Droplet";
 
 function getIpV4(networks: any) {
     const ips: any[] = [];
@@ -35,8 +23,10 @@ const humanFriendlySize = function (bytes: number) {
     return (bytes / Math.pow(1024, e)).toFixed(0) + '' + ' KMGTP'.charAt(e) + 'B';
 };
 
-export class DropletsSingle extends React.Component<SingleDroplet, any> {
-    state = {isOpen: false};
+export class SingleDropletCard extends React.Component<Droplet, any> {
+    state = {expanded: false};
+
+    private interval: any;
 
     render() {
         return (
@@ -71,13 +61,13 @@ export class DropletsSingle extends React.Component<SingleDroplet, any> {
                         <View>
                             <Icon
                                 onPress={() => {
-                                    this.setState({isOpen: !this.state.isOpen})
+                                    this.setState({expanded: !this.state.expanded})
                                 }}
                                 style={{
                                     alignSelf: 'flex-end'
                                 }}
                                 type='font-awesome'
-                                name={this.state.isOpen ? 'chevron-circle-up' : 'chevron-circle-down'}
+                                name={this.state.expanded ? 'chevron-circle-up' : 'chevron-circle-down'}
                                 color='#aaa'
                             />
                         </View>
@@ -88,7 +78,7 @@ export class DropletsSingle extends React.Component<SingleDroplet, any> {
                         flex: 1, flexDirection: 'column',
                         paddingTop: 10,
                     },
-                        this.state.isOpen ? {display: 'flex'} : {display: 'none'}
+                        this.state.expanded ? {display: 'flex'} : {display: 'none'}
                     ]}>
                         <Text style={styles.dropletInfo}>
                             RAM: {humanFriendlySize(this.props.memory * 1024 * 1024)}
@@ -114,7 +104,6 @@ export class DropletsSingle extends React.Component<SingleDroplet, any> {
                             Created: <TimeAgo time={this.props.created_at}/>
                         </Text>
 
-                        {/*<Text>{JSON.stringify(this.props)}</Text>*/}
                     </View>
                 </Card>
 
@@ -122,8 +111,15 @@ export class DropletsSingle extends React.Component<SingleDroplet, any> {
         );
     }
 
-    componentDidMount(): void {
+    componentDidMount() {
+        // Refresh the UI of the card every 3 seconds
+        this.interval = setInterval(() => this.setState({time: Date.now()}), 3000);
     }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
+    }
+
 }
 
 const styles = StyleSheet.create({

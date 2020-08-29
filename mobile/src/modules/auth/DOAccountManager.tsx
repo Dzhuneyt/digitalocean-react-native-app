@@ -2,30 +2,23 @@ import React from "react";
 import {FlatList, Text, TouchableHighlight} from "react-native";
 import {Button, Card, Overlay} from "react-native-elements";
 import auth from '@react-native-firebase/auth';
-import {DigitalOceanTokenCreateSingle} from "./DigitalOceanTokenCreateSingle";
+import {DOAccountManager_CreateNewToken} from "./DOAccountManager_CreateNewToken";
 import firestore from "@react-native-firebase/firestore";
-import {getAlias} from "../helpers/digitalocean";
+import {getAlias} from "../../helpers/digitalocean";
+import {Token} from "../../interfaces/Token";
 
-interface DigitalOceanToken {
-    alias: string;
-    token?: string;
-    created_at?: number;
-}
 
-export class ConfigureDigitalOceanToken extends React.Component<{
+export class DOAccountManager extends React.Component<{
     // Props
     navigation: any
 }, {
-    isCreating: boolean,
-    droplets: DigitalOceanToken[],
+    isDialogForNewTokenVisible: boolean,
+    accounts: Token[],
 }> {
 
     state = {
-        isCreating: false,
-        droplets: [
-            {id: "123", alias: "Default", token: "abc"},
-            {id: "124", alias: "Work", token: "ccc"},
-        ],
+        isDialogForNewTokenVisible: false,
+        accounts: [],
     };
 
 
@@ -33,12 +26,12 @@ export class ConfigureDigitalOceanToken extends React.Component<{
         return <>
             <Overlay
                 fullScreen={false}
-                isVisible={this.state.isCreating}
+                isVisible={this.state.isDialogForNewTokenVisible}
                 onBackdropPress={() => this.setState({
-                    isCreating: false,
+                    isDialogForNewTokenVisible: false,
                 })}
             >
-                <DigitalOceanTokenCreateSingle/>
+                <DOAccountManager_CreateNewToken/>
             </Overlay>
             <Card>
                 <Text style={{textAlign: 'left', marginBottom: 10}}>Please configure your DigitalOcean Personal Access
@@ -49,18 +42,20 @@ export class ConfigureDigitalOceanToken extends React.Component<{
                     this app to interact
                     with resources in your DigitalOcean account (e.g. create droplets).</Text>
 
+                {/* Button, when pressed, opens the "Create new token" dialog */}
                 <Button
                     containerStyle={{
                         marginTop: 20
                     }}
                     title="Create a new token"
-                    onPress={() => this.setState({isCreating: true})}
+                    onPress={() => this.setState({isDialogForNewTokenVisible: true})}
                 />
             </Card>
 
+            {/* List of DO accounts */}
             <FlatList
-                data={this.state.droplets}
-                keyExtractor={(item: DigitalOceanToken) => String(item.alias)}
+                data={this.state.accounts}
+                keyExtractor={(item: Token) => String(item.alias + item.token)}
                 renderItem={({item}) => <>
                     <Card>
                         <TouchableHighlight onPress={() => this.goToDropletListingForAlias(item.alias)}>
@@ -76,52 +71,66 @@ export class ConfigureDigitalOceanToken extends React.Component<{
     private async getCurrentTokens() {
         const currentUser = auth().currentUser;
 
-        if (!currentUser) {
+        if (!this.checkforLogin() || !currentUser) {
             throw new Error('Failed to get current user');
         }
 
-        const userUUID = currentUser.uid;
-        const globalCollectionForTokens = firestore()
-            .collection('digitalocean_tokens');
-
-        // Listen for changes on the Firestore and update the list in the UI
-        const currentUserTokens = globalCollectionForTokens
-            .doc(userUUID)
+        // Listen for changes on the Firestore
+        // and as soon as tokens are added or removed from this user's "key"
+        // refresh the UI and show them
+        firestore()
+            .collection('digitalocean_tokens')
+            .doc(currentUser.uid)
             .collection("tokens")
             .onSnapshot(snapshot => {
                 if (!snapshot) {
                     this.setState({
-                        droplets: [],
+                        accounts: [],
                     });
                     return;
                 }
-                const droplets: DigitalOceanToken[] = [];
+                const accounts: Token[] = [];
                 snapshot.forEach(item => {
-                    const obj: DigitalOceanToken = {
+                    const obj: Token = {
                         alias: item.ref.id,
                         token: item.get('token'),
                     };
                     if (item.get('created_at')) {
                         obj.created_at = item.get('created_at');
                     }
-                    droplets.push(obj);
+                    accounts.push(obj);
                     this.setState({
-                        droplets,
+                        accounts,
                     });
                 });
-                console.log(droplets);
+                console.log('New DO accounts list received and set in UI:', JSON.stringify(accounts, null, 2));
             }, error => {
                 console.log(error);
+                this.setState({
+                    accounts: [{
+                        alias: "INTERNAL_ERROR",
+                        token: "",
+                    }],
+                });
             });
     }
 
     async componentDidMount(): Promise<any> {
-        // If not logged in, redirect to login page
+        if (this.checkforLogin()) {
+            await this.getCurrentTokens();
+        }
+    }
+
+    /**
+     * If not logged in, redirect to login page
+     * @private
+     */
+    private checkforLogin() {
         if (!auth().currentUser) {
             this.props.navigation.replace("Login", {name: 'Login'});
             return false;
         }
-        await this.getCurrentTokens();
+        return true;
     }
 
     async goToDropletListingForAlias(alias: string) {
@@ -131,19 +140,4 @@ export class ConfigureDigitalOceanToken extends React.Component<{
         });
     }
 
-    // async getCurrentDigitaloceanToken() {
-    //     if (!auth().currentUser) {
-    //         return false;
-    //     }
-    //     // Get the users ID
-    //     const uid = auth().currentUser?.uid;
-    //
-    //     // Read the document for user 'Ada Lovelace':
-    //     const documentSnapshot = await firestore()
-    //         .collection('digitalocean_tokens')
-    //         .doc(uid)
-    //         .get();
-    //
-    //     return documentSnapshot ? documentSnapshot.get('token') : false;
-    // }
 }

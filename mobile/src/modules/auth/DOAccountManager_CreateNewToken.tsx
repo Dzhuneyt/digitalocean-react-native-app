@@ -4,9 +4,13 @@ import {Button, Card, Input} from "react-native-elements";
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import {Linking} from "react-native";
+import {Token} from "../../interfaces/Token";
 
-export class DigitalOceanTokenCreateSingle extends React.Component<any, any> {
-    state = {
+/**
+ * Dialog to add a single DO API token to the list of accounts
+ */
+export class DOAccountManager_CreateNewToken extends React.Component<any, any> {
+    state: Token = {
         token: '',
         alias: ''
     };
@@ -73,11 +77,8 @@ export class DigitalOceanTokenCreateSingle extends React.Component<any, any> {
         </>;
     }
 
-    async saveToken(tokenData: {
-        token: string,
-        alias: string,
-    }) {
-        console.log(tokenData);
+    async saveToken(tokenData: Token) {
+        console.log('Saving new token', tokenData);
 
         const currentUser = auth().currentUser;
 

@@ -2,9 +2,8 @@ import {Component} from "react";
 import React from "react";
 import {ScrollView, StyleSheet, Picker} from "react-native";
 import {Button, Input, Text} from 'react-native-elements';
-import {DigitalOceanBaseService} from "../../services/digitalOceanBaseService";
 import {ISize} from "dots-wrapper/dist/modules/size";
-import {DigitalOceanDropletsService} from "../../services/digitalOceanDropletsService";
+import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import {IRegion} from "dots-wrapper/dist/modules/region";
 
 const digitalOceanService = new DigitalOceanDropletsService();
