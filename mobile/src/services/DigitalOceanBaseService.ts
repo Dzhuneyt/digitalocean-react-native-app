@@ -9,7 +9,7 @@ const DIGITALOCEAN_TOKEN = '3676e424eb211ab2177e9a22429d8b2fb543ac641786b29d9635
 export class DigitalOceanBaseService {
     protected readonly baseUrl = 'https://api.digitalocean.com/v2/';
     public readonly defaultParams = {
-        per_page: 100,
+        per_page: 1000,
         page: 0,
     };
     protected readonly token: string = '';
@@ -40,6 +40,16 @@ export class DigitalOceanBaseService {
         const client = await this.getClient();
         const {data: {sizes}} = await client.size.listSizes(this.defaultParams);
         return sizes.filter(size => size.available);
+    }
+
+    async getDistributions() {
+        const client = await this.getClient();
+        const {data: {images}} = await client.image.listImages({
+            per_page: 1000,
+            type: "distribution",
+            user_images: false,
+        })
+        return images.filter(image => image.status = "available");
     }
 
     async getCurrentDigitaloceanToken() {

@@ -41,7 +41,7 @@ export class DropletList extends React.Component<{
                     isVisible={this.state.createDropletDialogVisible}
                     onBackdropPress={() => this.setState({createDropletDialogVisible: false})}
                 >
-                    <DropletCreate/>
+                    <DropletCreate currentApiToken={this.state.currentApiToken}/>
                 </Overlay>
                 <FlatList
                     onRefresh={() => this.refresh()}

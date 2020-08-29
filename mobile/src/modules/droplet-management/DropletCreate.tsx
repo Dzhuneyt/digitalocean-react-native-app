@@ -1,136 +1,169 @@
 import {Component} from "react";
 import React from "react";
-import {ScrollView, StyleSheet, Picker} from "react-native";
+import {ScrollView, StyleSheet} from "react-native";
 import {Button, Input, Text} from 'react-native-elements';
 import {ISize} from "dots-wrapper/dist/modules/size";
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import {IRegion} from "dots-wrapper/dist/modules/region";
+import {Token} from "../../interfaces/Token";
+import {Picker} from '@react-native-community/picker';
+import {IImage} from "dots-wrapper/dist/modules/image";
 
-const digitalOceanService = new DigitalOceanDropletsService();
-
-interface DropletSize {
-    slug: string;
-}
-
-export class DropletCreate extends Component {
+export class DropletCreate extends Component<{
+    currentApiToken?: string,
+}, any> {
     state: {
         availableRegions: IRegion[],
         availableSizes: ISize[],
-        availableImages: ISize[],
-        currentRegion: string | null,
+        availableImages: IImage[],
+        currentRegion: IRegion | null,
         currentSize: ISize | null,
+        currentImage: IImage | null,
+        name: string,
     } = {
         availableRegions: [],
         availableSizes: [],
         availableImages: [],
         currentRegion: null,
         currentSize: null,
+        currentImage: null,
+        name: "",
     };
 
-    render() {
-        let regionsForPicker: any[];
+    private doService?: DigitalOceanDropletsService = undefined;
 
-        if (this.state.currentSize) {
+    private getAvailableRegionsForSize(size: ISize | null) {
+        if (size) {
             // If droplet size was already selected,
             // allow selecting in the Regions dropdown
             // only the regions allowed for this size
-            regionsForPicker = this.state
+            return this.state
                 .availableRegions
-                .filter(value => {
-                    // @ts-ignore
-                    return this.state.currentSize.regions.find((value1: any) => value1 === value.slug);
-                })
-                .map((region: any) => {
-                    return <Picker.Item label={region.name} key={region.slug} value={region.slug}/>
+                .filter(regionName2 => {
+                    return size.regions.find((regionName1: any) => regionName1 === regionName2.slug);
                 });
         } else {
-            regionsForPicker = this.state
-                .availableRegions
-                .map((region: any) => {
-                    return <Picker.Item label={region.name} key={region.slug} value={region.slug}/>
-                });
+            // Return all available regions
+            return this.state
+                .availableRegions;
+        }
+    }
+
+    render() {
+        const regions = this.getAvailableRegionsForSize(this.state.currentSize);
+        const sizes = this.state.availableSizes;
+        const images = this.state.availableImages;
+
+
+        // Filter the original available DO images based on
+        // the current Region and Droplet Size selection
+        const filteredImages = images
+            .sort((a, b) => String(a.name + a.distribution).localeCompare(String(b.name + b.distribution)))
+            .filter(image => {
+                if (this.state.currentSize) {
+                    if (image.min_disk_size > this.state.currentSize.disk) {
+                        return false;
+                    }
+                }
+                if (this.state.currentRegion) {
+                    const imageSupportsSelectedRegion = image
+                        .regions
+                        .find(reg => reg === this.state.currentRegion!.slug);
+                    if (!imageSupportsSelectedRegion) {
+                        return false;
+                    }
+                }
+                return true;
+            });
+        console.log('Original list length', images.length)
+        console.log('Filtered list length', filteredImages.length);
+
+        filteredImages.forEach(image => {
+            console.log(image.distribution, image.name, image.size_gigabytes, image.min_disk_size, image.created_at)
+        })
+
+        if (!regions.length || !sizes.length || !filteredImages.length) {
+            console.log('No data to populate dropdowns');
+            // Do not render anything until we have the necessary information
+            return null;
         }
 
+        const regionsForPicker: any[] = regions.map((region: any) => {
+            return <Picker.Item label={region.name} key={region.slug} value={region.slug}/>
+        });
         regionsForPicker.unshift(<Picker.Item label="Region" key='' value=''/>);
 
-        let sizesForPicker = this.state.availableSizes.map((size: ISize) => {
+        const sizesForPicker = sizes.map((size: ISize) => {
             const label = `$ ${size.price_monthly} / mo, ${size.disk} Disk, ${size.vcpus} vCPU, ${size.memory} RAM`;
             return <Picker.Item label={label} key={size.slug} value={size.slug}/>
         });
         sizesForPicker.unshift(<Picker.Item label="Size" key='' value=''/>);
 
-        if (!regionsForPicker.length || !sizesForPicker.length) {
-            console.log('No data to populate dropdowns');
-            // Do not render anything until we have the necessary information
-            return null;
-        }
+        const imagesForPicker = filteredImages
+            .map((image: IImage) => {
+                const label = `${image.distribution} ${image.name}`;
+                return <Picker.Item label={label} key={image.id} value={image.id}/>
+            });
+        imagesForPicker.unshift(<Picker.Item label="Image" key='' value=''/>);
+
         return <>
             <ScrollView>
                 <Input
                     label='Droplet Name'
                     containerStyle={styles.input}
+                    onChangeText={text => this.setState({name: text})}
                     placeholder='e.g. ubuntu-2020-03-15'
                 />
 
                 <Picker
                     style={styles.picker}
                     mode="dropdown"
-                    selectedValue={this.state.currentSize}
+                    accessibilityLabel='Droplet Size'
+                    selectedValue={this.state.currentSize?.slug}
                     onValueChange={(itemValue) => {
-                        const size = this.state
+                        const currentSize = this.state
                             .availableSizes
                             .find(size => size['slug'] === itemValue);
-                        this.setState({currentSize: size});
+                        this.setState({currentSize});
                     }}
                 >
                     {sizesForPicker}
                 </Picker>
 
-                {this.state.currentSize && <Picker
+                <Picker
                     style={styles.picker}
-                    selectedValue={this.state.currentRegion}
+                    accessibilityLabel='Region'
+                    selectedValue={this.state.currentRegion?.slug}
                     mode="dropdown"
                     onValueChange={(itemValue) => {
-                        const foundRegion = this.state
+                        const currentRegion = this.state
                             .availableRegions
                             .find(region => region['slug'] === itemValue);
                         console.log(itemValue);
-                        console.log(foundRegion);
+                        console.log(currentRegion);
+                        this.setState({currentRegion});
                     }}>
                     {regionsForPicker}
-                </Picker>}
+                </Picker>
 
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='Image'
-                />
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='SSH Keys'
-                />
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='Backups enabled'
-                />
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='IP v6'
-                />
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='Private networking'
-                />
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='Install DO monitoring agent'
-                />
-                <Input
-                    containerStyle={styles.input}
-                    placeholder='Tags'
-                />
+                <Picker
+                    style={styles.picker}
+                    mode="dropdown"
+                    selectedValue={this.state.currentImage?.id}
+                    accessibilityLabel='Image'
+                    onValueChange={(itemValue) => {
+                        const currentImage = this.state
+                            .availableImages
+                            .find(image => image['id'] === itemValue);
+                        this.setState({currentImage});
+                    }}
+                >
+                    {imagesForPicker}
+                </Picker>
             </ScrollView>
 
             <Button
+                onPress={() => this.createDroplet()}
                 title="Create droplet"
             />
         </>;
@@ -138,11 +171,30 @@ export class DropletCreate extends Component {
 
     async componentDidMount() {
         this.setState({
-            availableRegions: await digitalOceanService.getRegions(),
-            availableSizes: await digitalOceanService.getSizes(),
-            availableImages: await digitalOceanService.images(),
+            availableRegions: await this.getDigitalOceanService().getRegions(),
+            availableSizes: await this.getDigitalOceanService().getSizes(),
+            availableImages: await this.getDigitalOceanService().getDistributions(),
             // currentRegion: 'nyc1'
         });
+    }
+
+    private getDigitalOceanService() {
+        if (this.doService === undefined) {
+            console.log(this.props);
+            this.doService = new DigitalOceanDropletsService(this.props.currentApiToken);
+        }
+        return this.doService;
+    }
+
+    private async createDroplet() {
+        this.getDigitalOceanService().createDroplet({
+            image: this.state.currentImage!.slug!,
+            name: this.state.name,
+            region: this.state.currentRegion!.slug!,
+            size: this.state.currentSize!.slug!,
+        }).then(value => {
+            console.log(value);
+        })
     }
 }
 
