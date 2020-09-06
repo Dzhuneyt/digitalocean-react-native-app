@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-community/async-storage";
 import {DOAccountManager} from "./src/modules/auth/DOAccountManager";
 import {Login} from "./src/modules/auth/Login";
 import {DropletList} from "./src/modules/droplet-management/DropletList";
+import auth from "@react-native-firebase/auth";
 
 const Stack = createStackNavigator();
 
@@ -57,20 +58,17 @@ class App extends React.Component<any, any> {
     }
 
     componentDidMount(): void {
-        // @TODO Get logged in state
-        AsyncStorage.getItem('digitalocean_token').then(value => {
-            if (!value) {
-                this.setState({
-                    initialScreen: "Login",
-                    readyToRender: true,
-                });
-            } else {
-                this.setState({
-                    initialScreen: "Droplets",
-                    readyToRender: true,
-                });
-            }
-        });
+        if (auth().currentUser) {
+            this.setState({
+                initialScreen: "DOAccountManager",
+                readyToRender: true,
+            });
+        } else {
+            this.setState({
+                initialScreen: "Login",
+                readyToRender: true,
+            });
+        }
     }
 }
 

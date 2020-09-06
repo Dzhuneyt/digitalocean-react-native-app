@@ -1,12 +1,14 @@
 import React from "react";
 import {FlatList, Text, View} from "react-native";
 import RNRestart from "react-native-restart";
-import {Overlay} from 'react-native-elements';
+import {Overlay, SearchBar} from 'react-native-elements';
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
 import {getAlias} from "../../helpers/digitalocean";
 import {DropletCreate} from "./DropletCreate";
 import {SingleDropletCard} from "../../partial_views/single-droplet-card";
+import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCard";
+import {IDroplet} from "dots-wrapper/dist/modules/droplet";
 
 const logout = async () => {
     await auth().signOut();
@@ -19,19 +21,31 @@ export class DropletList extends React.Component<{
     route: any,
     navigation: any,
 }, {
-    droplets: any[],
+    droplets: IDroplet[],
     refreshing: boolean,
     createDropletDialogVisible: boolean,
     currentApiToken?: string,
+    search: string,
 }> {
     state = {
         droplets: [],
         refreshing: false,
         createDropletDialogVisible: false,
         currentApiToken: '',
+        search: '',
     };
 
     private _intervalForRefreshingUI: any;
+
+    renderSearchHeader = () => {
+        return <SearchBar
+            onChangeText={(search) => this.setState({search: search})}
+            placeholder="Type Here..."
+            value={this.state.search}
+            lightTheme
+            round
+        />;
+    };
 
     render() {
         return <>
@@ -46,19 +60,34 @@ export class DropletList extends React.Component<{
                 <FlatList
                     onRefresh={() => this.refresh()}
                     refreshing={this.state.refreshing}
-                    data={this.state.droplets}
+                    data={this.getDroplets()}
                     keyExtractor={(item: any) => String(item.id)}
                     renderItem={({item}) => <SingleDropletCard {...item}/>}
+                    ListEmptyComponent={NoDropletsAvailableCard}
+                    ListHeaderComponent={this.renderSearchHeader}
                 />
             </View>
         </>;
     }
 
-    async refresh(showInUI = true) {
-        if (showInUI) {
-            this.setState({
-                refreshing: true,
-            });
+    getDroplets() {
+        if (this.state.search.length) {
+            return this.state
+                .droplets
+                .filter(
+                    (droplet: IDroplet) => droplet.name.includes(this.state.search)
+                );
+        }
+        return this.state.droplets;
+    }
+
+    /**
+     * Refresh the list of droplets from DigitalOcean API
+     * @param showSpinner indicate with a visual spinner
+     */
+    async refresh(showSpinner = true) {
+        if (showSpinner) {
+            this.toggleSpinner(true);
         }
 
         console.log('Refreshing droplets...');
@@ -72,21 +101,18 @@ export class DropletList extends React.Component<{
                 }).reverse(),
             });
             console.log('Droplets refreshed');
-            if (showInUI) {
-                this.setState({
-                    refreshing: false,
-                });
-            }
         } catch (e) {
             console.log('Droplets failed to refresh');
             console.log(JSON.stringify(e));
-            if (showInUI) {
-                this.setState({
-                    refreshing: false,
-                });
-            }
         }
 
+        this.toggleSpinner(false);
+    }
+
+    private toggleSpinner(show: boolean) {
+        this.setState({
+            refreshing: show,
+        });
     }
 
     async componentDidMount(): Promise<void> {
