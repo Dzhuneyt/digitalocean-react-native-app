@@ -1,12 +1,21 @@
 import React from "react";
-import {FlatList, Text, TouchableHighlight} from "react-native";
-import {Button, Card, Overlay} from "react-native-elements";
+import {FlatList, Text, TouchableHighlight, View} from "react-native";
+import {Button, Card, Icon, Overlay} from "react-native-elements";
 import auth from '@react-native-firebase/auth';
 import {DOAccountManager_CreateNewToken} from "./DOAccountManager_CreateNewToken";
 import firestore from "@react-native-firebase/firestore";
 import {getAlias} from "../../helpers/digitalocean";
 import {Token} from "../../interfaces/Token";
+import {FloatingAction} from "react-native-floating-action";
 
+const actions = [
+    {
+        text: "Language",
+        // icon: require("./images/ic_language_white.png"),
+        name: "bt_language",
+        position: 1
+    },
+];
 
 export class DOAccountManager extends React.Component<{
     // Props
@@ -23,36 +32,57 @@ export class DOAccountManager extends React.Component<{
 
 
     render() {
+        if (this.state.isDialogForNewTokenVisible) {
+            return <>
+                <Overlay
+                    fullScreen={false}
+                    isVisible={this.state.isDialogForNewTokenVisible}
+                    onBackdropPress={() => this.setState({
+                        isDialogForNewTokenVisible: false,
+                    })}
+                >
+                    <DOAccountManager_CreateNewToken/>
+                </Overlay>
+            </>;
+        }
+
+        if (!this.state.accounts.length) {
+            return <>
+                <Card>
+                    <Text style={{textAlign: 'left', marginBottom: 10}}>Please configure your DigitalOcean Personal
+                        Access
+                        Token
+                        below.</Text>
+                    <Text style={{textAlign: 'left', marginBottom: 10}}>It serves as a replacement for your username and
+                        password and allows
+                        this app to interact
+                        with resources in your DigitalOcean account (e.g. create droplets).</Text>
+
+                    {/* Button, when pressed, opens the "Create new token" dialog */}
+                    <Button
+                        containerStyle={{
+                            marginTop: 20
+                        }}
+                        title="Create a new token"
+                        onPress={() => this.setState({isDialogForNewTokenVisible: true})}
+                    />
+                </Card>
+            </>;
+        }
         return <>
-            <Overlay
-                fullScreen={false}
-                isVisible={this.state.isDialogForNewTokenVisible}
-                onBackdropPress={() => this.setState({
-                    isDialogForNewTokenVisible: false,
-                })}
-            >
-                <DOAccountManager_CreateNewToken/>
-            </Overlay>
-            <Card>
-                <Text style={{textAlign: 'left', marginBottom: 10}}>Please configure your DigitalOcean Personal Access
-                    Token
-                    below.</Text>
-                <Text style={{textAlign: 'left', marginBottom: 10}}>It serves as a replacement for your username and
-                    password and allows
-                    this app to interact
-                    with resources in your DigitalOcean account (e.g. create droplets).</Text>
-
-                {/* Button, when pressed, opens the "Create new token" dialog */}
-                <Button
-                    containerStyle={{
-                        marginTop: 20
-                    }}
-                    title="Create a new token"
-                    onPress={() => this.setState({isDialogForNewTokenVisible: true})}
-                />
-            </Card>
-
+            {/*<View style={{*/}
+            {/*    elevation: 5,*/}
+            {/*    flex: 1,*/}
+            {/*}}>*/}
+            {/*    <FloatingAction*/}
+            {/*        actions={actions}*/}
+            {/*        onPressItem={name => {*/}
+            {/*            console.log(`selected button: ${name}`);*/}
+            {/*        }}*/}
+            {/*    />*/}
+            {/*</View>*/}
             {/* List of DO accounts */}
+            {this.state.accounts &&
             <FlatList
                 data={this.state.accounts}
                 keyExtractor={(item: Token) => String(item.alias + item.token)}
@@ -64,6 +94,7 @@ export class DOAccountManager extends React.Component<{
                     </Card>
                 </>}
             />
+            }
         </>
             ;
     }
@@ -71,7 +102,7 @@ export class DOAccountManager extends React.Component<{
     private async getCurrentTokens() {
         const currentUser = auth().currentUser;
 
-        if (!this.checkforLogin() || !currentUser) {
+        if (!this.checkForLogin() || !currentUser) {
             throw new Error('Failed to get current user');
         }
 
@@ -93,10 +124,10 @@ export class DOAccountManager extends React.Component<{
                 snapshot.forEach(item => {
                     const obj: Token = {
                         alias: item.ref.id,
-                        token: item.get('token'),
+                        token: String(item.get('token')),
                     };
                     if (item.get('created_at')) {
-                        obj.created_at = item.get('created_at');
+                        obj.created_at = Number(item.get('created_at'));
                     }
                     accounts.push(obj);
                     this.setState({
@@ -116,7 +147,7 @@ export class DOAccountManager extends React.Component<{
     }
 
     async componentDidMount(): Promise<any> {
-        if (this.checkforLogin()) {
+        if (this.checkForLogin()) {
             await this.getCurrentTokens();
         }
     }
@@ -125,7 +156,7 @@ export class DOAccountManager extends React.Component<{
      * If not logged in, redirect to login page
      * @private
      */
-    private checkforLogin() {
+    private checkForLogin() {
         if (!auth().currentUser) {
             this.props.navigation.replace("Login", {name: 'Login'});
             return false;

@@ -12,7 +12,6 @@
 import React from 'react';
 import {NavigationContainer} from "@react-navigation/native";
 import {createStackNavigator} from "@react-navigation/stack";
-import AsyncStorage from "@react-native-community/async-storage";
 import {DOAccountManager} from "./src/modules/auth/DOAccountManager";
 import {Login} from "./src/modules/auth/Login";
 import {DropletList} from "./src/modules/droplet-management/DropletList";

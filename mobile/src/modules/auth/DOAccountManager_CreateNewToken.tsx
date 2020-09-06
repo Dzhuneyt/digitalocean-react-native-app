@@ -87,18 +87,17 @@ export class DOAccountManager_CreateNewToken extends React.Component<any, any> {
         }
 
         const userUUID = currentUser.uid;
-        const globalCollectionForTokens = firestore()
-            .collection('digitalocean_tokens');
 
-        const currentUserTokens = await globalCollectionForTokens
+        const currentUserTokens = await firestore()
+            .collection('digitalocean_tokens')
             .doc(userUUID)
             .collection("tokens");
 
         const currentDocument = await currentUserTokens.doc(tokenData.alias);
-        await currentDocument.set({
+        (await currentDocument.set({
             token: tokenData.token,
             created_at: (new Date()).getTime(),
-        });
+        }))
     }
 
 

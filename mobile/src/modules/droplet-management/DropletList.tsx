@@ -1,7 +1,7 @@
 import React from "react";
 import {FlatList, Text, View} from "react-native";
 import RNRestart from "react-native-restart";
-import {Overlay, SearchBar} from 'react-native-elements';
+import {Button, Overlay, SearchBar} from 'react-native-elements';
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
 import {getAlias} from "../../helpers/digitalocean";
@@ -9,17 +9,16 @@ import {DropletCreate} from "./DropletCreate";
 import {SingleDropletCard} from "../../partial_views/single-droplet-card";
 import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCard";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
+import {StackNavigationProp} from "@react-navigation/stack";
 
 const logout = async () => {
     await auth().signOut();
-    // AsyncStorage.removeItem('digitalocean_token').then(value => {
     RNRestart.Restart()
-    // });
 };
 
 export class DropletList extends React.Component<{
     route: any,
-    navigation: any,
+    navigation: StackNavigationProp<any>,
 }, {
     droplets: IDroplet[],
     refreshing: boolean,
@@ -137,8 +136,10 @@ export class DropletList extends React.Component<{
                             marginRight: 10,
                             alignSelf: 'center'
                         }}
-                        onPress={() => logout()}
-                    >Logout</Text>
+                        onPress={() => {
+                            this.props.navigation.goBack();
+                        }}
+                    >Manage accounts</Text>
                 </View>
             ),
         });
