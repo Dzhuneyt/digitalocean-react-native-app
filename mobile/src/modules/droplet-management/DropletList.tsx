@@ -37,6 +37,9 @@ export class DropletList extends React.Component<{
     private _intervalForRefreshingUI: any;
 
     renderSearchHeader = () => {
+        if (!this.state.droplets.length) {
+            return <></>;
+        }
         return <SearchBar
             onChangeText={(search) => this.setState({search: search})}
             placeholder="Type Here..."
@@ -62,9 +65,13 @@ export class DropletList extends React.Component<{
                     data={this.getDroplets()}
                     keyExtractor={(item: any) => String(item.id)}
                     renderItem={({item}) => <SingleDropletCard {...item}/>}
-                    ListEmptyComponent={NoDropletsAvailableCard}
                     ListHeaderComponent={this.renderSearchHeader}
+                    ListEmptyComponent={() => <NoDropletsAvailableCard
+                        onClick={() => this.setState({
+                            createDropletDialogVisible: true,
+                        })}/>}
                 />
+
             </View>
         </>;
     }
@@ -151,7 +158,7 @@ export class DropletList extends React.Component<{
         const alias = await getAlias(this.props.route.params['alias']);
         console.log(alias);
         this.setState({
-            currentApiToken: alias.get('token'),
+            currentApiToken: String(alias.get('token')),
         });
         await this.refresh();
 

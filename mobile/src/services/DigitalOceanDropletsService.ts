@@ -1,5 +1,6 @@
 import {DigitalOceanBaseService} from "./DigitalOceanBaseService";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
+import {sshKey} from "dots-wrapper/dist/modules";
 
 export class DigitalOceanDropletsService extends DigitalOceanBaseService {
 
@@ -11,24 +12,19 @@ export class DigitalOceanDropletsService extends DigitalOceanBaseService {
 
     async createDroplet(config: {
         name: string,
-        image: string,
+        image: string | number,
         region: string,
         size: string,
+        sshKey: number,
     }): Promise<any> {
         const client = await this.getClient();
-        try {
-            const res = await client.droplet.createDroplet({
-                ...config
-            }).catch(e => {
-                console.error(JSON.stringify(e, null, 2));
-                throw e;
-            })
-            console.log(res.status, res.headers);
-            return true;
-        } catch (e) {
-            console.log(JSON.stringify(e, null, 2));
-            return false;
-        }
+        const res = await client.droplet.createDroplet({
+            ...config,
+            ssh_keys: [
+                config.sshKey,
+            ]
+        });
+        console.log(JSON.stringify(res, null, 2));
     }
 
     async images() {
@@ -40,5 +36,6 @@ export class DigitalOceanDropletsService extends DigitalOceanBaseService {
         images.forEach(image => console.log(image));
         return images;
     }
+
 
 }

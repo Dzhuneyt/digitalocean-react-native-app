@@ -21,7 +21,7 @@ export class DigitalOceanBaseService {
     }
 
     public async getClient() {
-        const token = this.token ? this.token : await this.getCurrentDigitaloceanToken();
+        const token = (this.token ? this.token : await this.getCurrentDigitaloceanToken()) as string;
         return createApiClient({token});
     }
 
@@ -66,5 +66,13 @@ export class DigitalOceanBaseService {
             .get();
 
         return documentSnapshot ? documentSnapshot.get('token') : false;
+    }
+
+    async sshKeys() {
+        const client = await this.getClient();
+        const {data: {ssh_keys}} = await client.sshKey.listSshKeys({
+            ...this.defaultParams,
+        });
+        return ssh_keys;
     }
 }

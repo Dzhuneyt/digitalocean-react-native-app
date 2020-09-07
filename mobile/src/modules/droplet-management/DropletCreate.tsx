@@ -5,9 +5,10 @@ import {Button, Input, Text} from 'react-native-elements';
 import {ISize} from "dots-wrapper/dist/modules/size";
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import {IRegion} from "dots-wrapper/dist/modules/region";
-import {Token} from "../../interfaces/Token";
 import {Picker} from '@react-native-community/picker';
 import {IImage} from "dots-wrapper/dist/modules/image";
+import {ISshKey} from "dots-wrapper/dist/modules/ssh-key";
+import Snackbar from 'react-native-snackbar';
 
 export class DropletCreate extends Component<{
     currentApiToken?: string,
@@ -16,17 +17,21 @@ export class DropletCreate extends Component<{
         availableRegions: IRegion[],
         availableSizes: ISize[],
         availableImages: IImage[],
+        sshKeys: ISshKey[],
         currentRegion: IRegion | null,
         currentSize: ISize | null,
         currentImage: IImage | null,
+        currentSshKey: ISshKey | null,
         name: string,
     } = {
         availableRegions: [],
         availableSizes: [],
         availableImages: [],
+        sshKeys: [],
         currentRegion: null,
         currentSize: null,
         currentImage: null,
+        currentSshKey: null,
         name: "",
     };
 
@@ -106,6 +111,11 @@ export class DropletCreate extends Component<{
             });
         imagesForPicker.unshift(<Picker.Item label="Image" key='' value=''/>);
 
+        const sshKeysForPicker = this.state.sshKeys.map((sshKey) => {
+            return <Picker.Item label={sshKey.name} key={sshKey.id} value={sshKey.id}/>
+        })
+        sshKeysForPicker.unshift(<Picker.Item label={'SSH Key'} key='' value=''/>)
+
         return <>
             <ScrollView>
                 <Input
@@ -160,9 +170,24 @@ export class DropletCreate extends Component<{
                 >
                     {imagesForPicker}
                 </Picker>
-            </ScrollView>
 
+                <Picker
+                    style={styles.picker}
+                    mode="dropdown"
+                    accessibilityLabel='SSH key'
+                    selectedValue={this.state.currentSshKey?.id}
+                    onValueChange={(itemValue) => {
+                        const currentSshKey = this.state
+                            .sshKeys
+                            .find(sshKey => sshKey.id === itemValue);
+                        this.setState({currentSshKey: currentSshKey});
+                    }}
+                >
+                    {sshKeysForPicker}
+                </Picker>
+            </ScrollView>
             <Button
+                disabled={!this.formIsValid()}
                 onPress={() => this.createDroplet()}
                 title="Create droplet"
             />
@@ -174,7 +199,7 @@ export class DropletCreate extends Component<{
             availableRegions: await this.getDigitalOceanService().getRegions(),
             availableSizes: await this.getDigitalOceanService().getSizes(),
             availableImages: await this.getDigitalOceanService().getDistributions(),
-            // currentRegion: 'nyc1'
+            sshKeys: await this.getDigitalOceanService().sshKeys(),
         });
     }
 
@@ -187,14 +212,38 @@ export class DropletCreate extends Component<{
     }
 
     private async createDroplet() {
-        this.getDigitalOceanService().createDroplet({
-            image: this.state.currentImage!.slug!,
+        const config = {
+            image: this.state.currentImage!.id!,
             name: this.state.name,
             region: this.state.currentRegion!.slug!,
             size: this.state.currentSize!.slug!,
-        }).then(value => {
+            sshKey: this.state.currentSshKey?.id as number,
+        };
+        this.getDigitalOceanService().createDroplet(config).then(value => {
             console.log(value);
+            console.log('Droplet creation success');
+            Snackbar.show({
+                text: "Droplet creation started",
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: "green"
+            })
+        }).catch(err => {
+            console.error(err);
+            console.log('Droplet creation FAILED');
+            Snackbar.show({
+                text: "Droplet creation FAILED",
+                duration: Snackbar.LENGTH_SHORT,
+                backgroundColor: 'red',
+            })
         })
+    }
+
+    private formIsValid() {
+        return !!(this.state.currentImage &&
+            this.state.currentRegion &&
+            this.state.currentSize &&
+            this.state.currentSshKey);
+
     }
 }
 
