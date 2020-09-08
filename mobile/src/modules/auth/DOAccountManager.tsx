@@ -1,21 +1,12 @@
 import React from "react";
-import {FlatList, Text, TouchableHighlight, View} from "react-native";
+import {FlatList, StyleSheet, Text, TouchableHighlight, View} from "react-native";
 import {Button, Card, Icon, Overlay} from "react-native-elements";
 import auth from '@react-native-firebase/auth';
 import {DOAccountManager_CreateNewToken} from "./DOAccountManager_CreateNewToken";
 import firestore from "@react-native-firebase/firestore";
-import {getAlias} from "../../helpers/digitalocean";
+import {getAlias, getAliasDocumentReference} from "../../helpers/digitalocean";
 import {Token} from "../../interfaces/Token";
-import {FloatingAction} from "react-native-floating-action";
-
-const actions = [
-    {
-        text: "Language",
-        // icon: require("./images/ic_language_white.png"),
-        name: "bt_language",
-        position: 1
-    },
-];
+import FAB from 'react-native-fab'
 
 export class DOAccountManager extends React.Component<{
     // Props
@@ -70,31 +61,51 @@ export class DOAccountManager extends React.Component<{
             </>;
         }
         return <>
-            {/*<View style={{*/}
-            {/*    elevation: 5,*/}
-            {/*    flex: 1,*/}
-            {/*}}>*/}
-            {/*    <FloatingAction*/}
-            {/*        actions={actions}*/}
-            {/*        onPressItem={name => {*/}
-            {/*            console.log(`selected button: ${name}`);*/}
-            {/*        }}*/}
-            {/*    />*/}
-            {/*</View>*/}
-            {/* List of DO accounts */}
             {this.state.accounts &&
             <FlatList
                 data={this.state.accounts}
                 keyExtractor={(item: Token) => String(item.alias + item.token)}
                 renderItem={({item}) => <>
                     <Card>
-                        <TouchableHighlight onPress={() => this.goToDropletListingForAlias(item.alias)}>
-                            <Text>{item.alias}</Text>
-                        </TouchableHighlight>
+                        <View
+                            style={{
+                                display: "flex",
+                                alignItems: "center",
+                                flexDirection: "row",
+                            }}>
+                            <TouchableHighlight
+                                style={{
+                                    flexGrow: 1,
+                                }}
+                                onPress={() => this.goToDropletListingForAlias(item.alias)}>
+                                <Text>{item.alias}</Text>
+                            </TouchableHighlight>
+                            <Button
+                                style={{}}
+                                title={"Droplets"}
+                                onPress={() => this.goToDropletListingForAlias(item.alias)}
+                            />
+                            <View style={{width: 10}}/>
+                            <Button
+                                style={{}}
+                                title={"Delete"}
+                                onPress={() => this.deleteAlias(item.alias)}
+                            />
+                        </View>
+
                     </Card>
                 </>}
             />
             }
+            <FAB buttonColor="green"
+                 iconTextColor="#FFFFFF"
+                 onClickAction={() => {
+                     console.log("FAB pressed")
+                     this.setState({isDialogForNewTokenVisible: true})
+                 }}
+                 visible={true}
+                 iconTextComponent={<><Icon accessibilityHint='Create droplet' name="add-circle" color='#fff'/></>}/>
+
         </>
             ;
     }
@@ -134,7 +145,7 @@ export class DOAccountManager extends React.Component<{
                         accounts,
                     });
                 });
-                console.log('New DO accounts list received and set in UI:', JSON.stringify(accounts, null, 2));
+                console.log('New DO accounts list received and set in UI:', JSON.stringify(accounts.length, null, 2));
             }, error => {
                 console.log(error);
                 this.setState({
@@ -171,4 +182,25 @@ export class DOAccountManager extends React.Component<{
         });
     }
 
+    private deleteAlias(alias: any) {
+        getAliasDocumentReference(alias)
+            .then(doc => {
+                doc.delete().then(() => {
+                    console.log('DO account delete success');
+                }).catch(err => {
+                    console.error(err);
+                })
+            })
+            .catch(reason => {
+                console.error(reason);
+            })
+    }
 }
+
+const styles = StyleSheet.create({
+    actionButtonIcon: {
+        fontSize: 20,
+        height: 22,
+        color: 'white',
+    },
+});

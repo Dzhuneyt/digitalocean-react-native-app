@@ -43,12 +43,12 @@ class App extends React.Component<any, any> {
                         <Stack.Screen
                             name="DOAccountManager"
                             component={DOAccountManager}
-                            options={{title: 'DigitalOcean Accounts'}}
+                            options={{title: 'DigitalOcean - API Keys'}}
                         />
                         <Stack.Screen
                             name="Droplets"
                             component={DropletList}
-                            options={{title: 'Droplets'}}
+                            options={{title: 'DigitalOcean - Droplets Management'}}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>

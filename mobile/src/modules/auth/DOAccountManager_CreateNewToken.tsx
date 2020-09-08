@@ -59,7 +59,7 @@ export class DOAccountManager_CreateNewToken extends React.Component<any, any> {
                     marginTop: 20
                 }}
                 buttonStyle={{
-                    backgroundColor: '#aaa'
+                    backgroundColor: '#aaaaaa'
                 }}
                 title="What are API tokens?"
                 onPress={() => this.openTokenInstructionsUrl()}
@@ -69,7 +69,7 @@ export class DOAccountManager_CreateNewToken extends React.Component<any, any> {
                     marginTop: 20
                 }}
                 buttonStyle={{
-                    backgroundColor: '#aaa'
+                    backgroundColor: '#aaaaaa'
                 }}
                 title="Where to I get a new API token?"
                 onPress={() => this.openCreateTokenUrl()}

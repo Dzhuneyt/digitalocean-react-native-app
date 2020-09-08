@@ -28,7 +28,7 @@ export class Login extends Component<any, any> {
 
     componentDidMount(): void {
         if (auth().currentUser) {
-            this.props.navigation.replace("DOAccountManager", {name: 'DigitalOcean API Token'});
+            this.props.navigation.replace("DOAccountManager");
         }
     }
 
@@ -44,7 +44,7 @@ export class Login extends Component<any, any> {
                 duration: Snackbar.LENGTH_SHORT,
             });
 
-            this.props.navigation.replace("ConfigureDigitalOceanToken", {name: 'DigitalOcean API Token'});
+            this.props.navigation.replace("DOAccountManager");
         } catch (e) {
             console.log(e.message);
             Snackbar.show({
