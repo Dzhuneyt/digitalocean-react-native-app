@@ -189,7 +189,7 @@ export class DropletCreate extends Component<{
             <Button
                 disabled={!this.formIsValid()}
                 onPress={() => this.createDroplet()}
-                title="Create droplet"
+                title="Create a droplet"
             />
         </>;
     }
@@ -223,7 +223,7 @@ export class DropletCreate extends Component<{
             console.log(value);
             console.log('Droplet creation success');
             Snackbar.show({
-                text: "Droplet creation started",
+                text: "Droplet creation started. Check back in a minute...",
                 duration: Snackbar.LENGTH_SHORT,
                 backgroundColor: "green"
             })

@@ -1,31 +1,39 @@
 import React from "react";
-import {Button, Text} from "react-native-elements";
+import {Button, Divider, Icon, Text} from "react-native-elements";
 import {StyleSheet, View} from "react-native";
 
 export class NoDropletsAvailableCard extends React.PureComponent<{
-    // Triggered when the "Create droplet" button is clicked
     onClick: Function,
+    shown: boolean,
 }> {
 
     render() {
-        return <View style={styles.container}>
-            <Text style={styles.text}>No droplets available for this account</Text>
-            <Button title={'Create a droplet'} onPress={() => this.props.onClick()}/>
-        </View>;
+        return this.props.shown ? <View style={styles.container}>
+            <Icon
+                size={80}
+                color={"#aaa"}
+                type={"material"}
+                name='sentiment-dissatisfied'/>
+            <Text h4 style={styles.text}>No droplets available in this DigitalOcean account.</Text>
+            <Divider/>
+            <Text
+                style={{
+                    ...styles.text
+                }}>Try creating some, or switch to a different DigitalOcean account using the
+                icons at the bottom right side.</Text>
+            <Divider/>
+            <Divider/>
+        </View> : <></>;
     }
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        margin: 10,
+        marginTop: 25,
     },
     text: {
-        fontSize: 22,
-        textAlign: "center",
-        marginTop: 30,
-        marginBottom: 30,
+        textAlign: 'center',
+        margin: 15,
     }
 })

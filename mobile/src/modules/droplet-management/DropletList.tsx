@@ -1,7 +1,7 @@
 import React from "react";
-import {FlatList, Text, View} from "react-native";
+import {FlatList, StyleSheet, Text, View} from "react-native";
 import RNRestart from "react-native-restart";
-import {Button, Overlay, SearchBar} from 'react-native-elements';
+import {Button, Header, Icon, Overlay, SearchBar} from 'react-native-elements';
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
 import {getAlias} from "../../helpers/digitalocean";
@@ -10,6 +10,7 @@ import {SingleDropletCard} from "../../partial_views/single-droplet-card";
 import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCard";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
 import {StackNavigationProp} from "@react-navigation/stack";
+import ActionButton from "react-native-action-button";
 
 const logout = async () => {
     await auth().signOut();
@@ -24,36 +25,32 @@ export class DropletList extends React.Component<{
     refreshing: boolean,
     createDropletDialogVisible: boolean,
     currentApiToken?: string,
-    search: string,
 }> {
     state = {
         droplets: [],
-        refreshing: false,
+        refreshing: true,
         createDropletDialogVisible: false,
         currentApiToken: '',
-        search: '',
     };
 
     private _intervalForRefreshingUI: any;
 
-    renderSearchHeader = () => {
-        if (!this.state.droplets.length) {
-            return <></>;
-        }
-        return <SearchBar
-            onChangeText={(search) => this.setState({search: search})}
-            placeholder="Type Here..."
-            value={this.state.search}
-            lightTheme
-            round
-        />;
-    };
-
     render() {
         return <>
             <View style={{flex: 1}}>
+                <Header
+                    statusBarProps={{translucent: true}}
+                    placement="left"
+                    leftComponent={{
+                        icon: 'menu', color: '#fff', onPress: () => {
+                            alert('bla')
+                        }
+                    }}
+                    centerComponent={{text: 'DigitalOcean - Droplets', style: {color: '#fff'}}}
+                    rightComponent={{icon: 'home', color: '#fff'}}
+                />
                 <Overlay
-                    fullScreen={true}
+                    fullScreen={false}
                     isVisible={this.state.createDropletDialogVisible}
                     onBackdropPress={() => this.setState({createDropletDialogVisible: false})}
                 >
@@ -65,25 +62,32 @@ export class DropletList extends React.Component<{
                     data={this.getDroplets()}
                     keyExtractor={(item: any) => String(item.id)}
                     renderItem={({item}) => <SingleDropletCard {...item}/>}
-                    ListHeaderComponent={this.renderSearchHeader}
-                    ListEmptyComponent={() => <NoDropletsAvailableCard
+                    ListEmptyComponent={<NoDropletsAvailableCard
+                        shown={!this.state.refreshing}
                         onClick={() => this.setState({
                             createDropletDialogVisible: true,
                         })}/>}
                 />
 
+                <ActionButton buttonColor="rgba(231,76,60,1)">
+                    <ActionButton.Item
+                        buttonColor="#9b59b6"
+                        title="Create a droplet"
+                        onPress={() => this.setState({createDropletDialogVisible: true})}>
+                        <Icon color='#fff' name="add-circle" style={styles.actionButtonIcon}/>
+                    </ActionButton.Item>
+                    <ActionButton.Item
+                        buttonColor="#3498db"
+                        title="Switch Accounts"
+                        onPress={() => this.props.navigation.goBack()}>
+                        <Icon color='#fff' name="people" style={styles.actionButtonIcon}/>
+                    </ActionButton.Item>
+                </ActionButton>
             </View>
         </>;
     }
 
     getDroplets() {
-        if (this.state.search.length) {
-            return this.state
-                .droplets
-                .filter(
-                    (droplet: IDroplet) => droplet.name.includes(this.state.search)
-                );
-        }
         return this.state.droplets;
     }
 
@@ -160,7 +164,7 @@ export class DropletList extends React.Component<{
         this.setState({
             currentApiToken: String(alias.get('token')),
         });
-        await this.refresh();
+        await this.refresh(true);
 
         // Refresh the droplet list every 10 seconds
         this._intervalForRefreshingUI = setInterval(async () => {
@@ -172,3 +176,11 @@ export class DropletList extends React.Component<{
         clearInterval(this._intervalForRefreshingUI);
     }
 }
+
+const styles = StyleSheet.create({
+    actionButtonIcon: {
+        fontSize: 20,
+        height: 22,
+        color: 'white',
+    },
+});

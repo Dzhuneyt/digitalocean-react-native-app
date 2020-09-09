@@ -34,7 +34,11 @@ class App extends React.Component<any, any> {
         return (
             <>
                 <NavigationContainer>
-                    <Stack.Navigator initialRouteName={this.state.initialScreen}>
+                    <Stack.Navigator
+                        screenOptions={{
+                            headerShown: false
+                        }}
+                        initialRouteName={this.state.initialScreen}>
                         <Stack.Screen
                             name="Login"
                             component={Login}

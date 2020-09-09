@@ -1,12 +1,12 @@
 import React from "react";
-import {FlatList, StyleSheet, Text, TouchableHighlight, View} from "react-native";
-import {Button, Card, Icon, Overlay} from "react-native-elements";
+import {Alert, FlatList, Linking, StyleSheet, Text, TouchableHighlight, View} from "react-native";
+import {Button, Card, Header, Icon, Overlay} from "react-native-elements";
 import auth from '@react-native-firebase/auth';
 import {DOAccountManager_CreateNewToken} from "./DOAccountManager_CreateNewToken";
 import firestore from "@react-native-firebase/firestore";
 import {getAlias, getAliasDocumentReference} from "../../helpers/digitalocean";
 import {Token} from "../../interfaces/Token";
-import FAB from 'react-native-fab'
+import ActionButton from "react-native-action-button";
 
 export class DOAccountManager extends React.Component<{
     // Props
@@ -26,7 +26,9 @@ export class DOAccountManager extends React.Component<{
         if (this.state.isDialogForNewTokenVisible) {
             return <>
                 <Overlay
-                    fullScreen={false}
+                    animated={true}
+                    animationType={'slide'}
+                    fullScreen={true}
                     isVisible={this.state.isDialogForNewTokenVisible}
                     onBackdropPress={() => this.setState({
                         isDialogForNewTokenVisible: false,
@@ -61,6 +63,17 @@ export class DOAccountManager extends React.Component<{
             </>;
         }
         return <>
+            <Header
+                statusBarProps={{translucent: true}}
+                placement="left"
+                leftComponent={{
+                    icon: 'menu', color: '#fff', onPress: () => {
+                        alert('bla')
+                    }
+                }}
+                centerComponent={{text: 'DigitalOcean - Accounts (API keys)', style: {color: '#fff'}}}
+                rightComponent={{icon: 'home', color: '#fff'}}
+            />
             {this.state.accounts &&
             <FlatList
                 data={this.state.accounts}
@@ -78,18 +91,37 @@ export class DOAccountManager extends React.Component<{
                                     flexGrow: 1,
                                 }}
                                 onPress={() => this.goToDropletListingForAlias(item.alias)}>
-                                <Text>{item.alias}</Text>
+                                <Text>Name: {item.alias}</Text>
                             </TouchableHighlight>
                             <Button
                                 style={{}}
-                                title={"Droplets"}
+                                title=' Droplets'
+                                accessibilityLabel='Droplets listing'
+                                icon={() => <Icon color="#fff" name='dns' type='material'/>}
                                 onPress={() => this.goToDropletListingForAlias(item.alias)}
                             />
                             <View style={{width: 10}}/>
                             <Button
                                 style={{}}
-                                title={"Delete"}
-                                onPress={() => this.deleteAlias(item.alias)}
+                                accessibilityLabel='Delete droplet'
+                                icon={() => <Icon color="#fff" name='delete'/>}
+                                onPress={() => {
+                                    Alert.alert(
+                                        "Delete API key",
+                                        "Are you sure you want to remove this API key from the app?",
+                                        [
+                                            {
+                                                text: "Cancel",
+                                                onPress: () => console.log("Cancel Pressed"),
+                                                style: "cancel"
+                                            },
+                                            {text: "Yes", onPress: () => this.deleteAlias(item.alias)}
+                                        ],
+                                        {cancelable: false}
+                                    );
+
+
+                                }}
                             />
                         </View>
 
@@ -97,15 +129,20 @@ export class DOAccountManager extends React.Component<{
                 </>}
             />
             }
-            <FAB buttonColor="green"
-                 iconTextColor="#FFFFFF"
-                 onClickAction={() => {
-                     console.log("FAB pressed")
-                     this.setState({isDialogForNewTokenVisible: true})
-                 }}
-                 visible={true}
-                 iconTextComponent={<><Icon accessibilityHint='Create droplet' name="add-circle" color='#fff'/></>}/>
-
+            <ActionButton buttonColor="rgba(231,76,60,1)">
+                <ActionButton.Item
+                    buttonColor="#6ec6ff"
+                    title="What is a DigitalOcean API key?"
+                    onPress={() => this.openTokenInstructionsUrl()}>
+                    <Icon color='#fff' name="help" style={styles.actionButtonIcon}/>
+                </ActionButton.Item>
+                <ActionButton.Item
+                    buttonColor="#2196f3"
+                    title="Add an API key"
+                    onPress={() => this.setState({isDialogForNewTokenVisible: true})}>
+                    <Icon color='#fff' name="add-circle" style={styles.actionButtonIcon}/>
+                </ActionButton.Item>
+            </ActionButton>
         </>
             ;
     }
@@ -117,49 +154,66 @@ export class DOAccountManager extends React.Component<{
             throw new Error('Failed to get current user');
         }
 
-        // Listen for changes on the Firestore
-        // and as soon as tokens are added or removed from this user's "key"
-        // refresh the UI and show them
+        /**
+         * Format Firebase snapshot and set it as component state
+         * @param snapshot
+         */
+        const _processSnapshot = (snapshot: any) => {
+            if (!snapshot) {
+                this.setState({
+                    accounts: [],
+                });
+                return;
+            }
+            const accounts: Token[] = [];
+            snapshot.forEach((item: { ref: { id: any; }; get: (arg0: string) => any; }) => {
+                const obj: Token = {
+                    alias: item.ref.id,
+                    token: String(item.get('token')),
+                };
+                if (item.get('created_at')) {
+                    obj.created_at = Number(item.get('created_at'));
+                }
+                accounts.push(obj);
+            });
+            this.setState({
+                accounts,
+            });
+            console.log('New DO accounts list received and set in UI:', JSON.stringify(accounts.length, null, 2));
+        };
+
+        // Get current snapshot immediately (don't wait for online sync)
+        const snapshot = await firestore()
+            .collection('digitalocean_tokens')
+            .doc(currentUser.uid)
+            .collection("tokens")
+            .get();
+
+        _processSnapshot(snapshot);
+
+        // Listen for changes on the Firestore real-time and reflect in component every time
         firestore()
             .collection('digitalocean_tokens')
             .doc(currentUser.uid)
             .collection("tokens")
             .onSnapshot(snapshot => {
-                if (!snapshot) {
-                    this.setState({
-                        accounts: [],
-                    });
-                    return;
-                }
-                const accounts: Token[] = [];
-                snapshot.forEach(item => {
-                    const obj: Token = {
-                        alias: item.ref.id,
-                        token: String(item.get('token')),
-                    };
-                    if (item.get('created_at')) {
-                        obj.created_at = Number(item.get('created_at'));
-                    }
-                    accounts.push(obj);
-                    this.setState({
-                        accounts,
-                    });
-                });
-                console.log('New DO accounts list received and set in UI:', JSON.stringify(accounts.length, null, 2));
+                _processSnapshot(snapshot);
             }, error => {
+                // @TODO send this error to Firebase Crashlytics
                 console.log(error);
-                this.setState({
-                    accounts: [{
-                        alias: "INTERNAL_ERROR",
-                        token: "",
-                    }],
-                });
+                _processSnapshot([]);
             });
     }
 
     async componentDidMount(): Promise<any> {
-        if (this.checkForLogin()) {
-            await this.getCurrentTokens();
+        await this.getCurrentTokens();
+
+        if (this.state.accounts.length === 0) {
+            // If on load there are no DO accounts,
+            // Open the account creation dialog
+            this.setState({
+                isDialogForNewTokenVisible: true,
+            });
         }
     }
 
@@ -194,6 +248,12 @@ export class DOAccountManager extends React.Component<{
             .catch(reason => {
                 console.error(reason);
             })
+    }
+
+    openTokenInstructionsUrl() {
+        const url = 'https://www.digitalocean.com/docs/apis-clis/api/create-personal-access-token/';
+        Linking.openURL(url)
+            .catch((err) => console.error('An error occurred', err));
     }
 }
 
