@@ -11,6 +11,7 @@ import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCa
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
 import {StackNavigationProp} from "@react-navigation/stack";
 import ActionButton from "react-native-action-button";
+import Snackbar from "react-native-snackbar";
 
 const logout = async () => {
     await auth().signOut();
@@ -54,7 +55,17 @@ export class DropletList extends React.Component<{
                     isVisible={this.state.createDropletDialogVisible}
                     onBackdropPress={() => this.setState({createDropletDialogVisible: false})}
                 >
-                    <DropletCreate currentApiToken={this.state.currentApiToken}/>
+                    <DropletCreate
+                        currentApiToken={this.state.currentApiToken}
+                        onCreate={() => {
+                            this.setState({createDropletDialogVisible: false});
+                            Snackbar.show({
+                                text: "Droplet creation started. Check back in a minute...",
+                                duration: Snackbar.LENGTH_SHORT,
+                                backgroundColor: "green"
+                            });
+                        }}
+                    />
                 </Overlay>
                 <FlatList
                     onRefresh={() => this.refresh()}

@@ -12,6 +12,7 @@ import Snackbar from 'react-native-snackbar';
 
 export class DropletCreate extends Component<{
     currentApiToken?: string,
+    onCreate: Function,
 }, any> {
     state: {
         availableRegions: IRegion[],
@@ -222,11 +223,8 @@ export class DropletCreate extends Component<{
         this.getDigitalOceanService().createDroplet(config).then(value => {
             console.log(value);
             console.log('Droplet creation success');
-            Snackbar.show({
-                text: "Droplet creation started. Check back in a minute...",
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: "green"
-            })
+
+            this.props.onCreate();
         }).catch(err => {
             console.error(err);
             console.log('Droplet creation FAILED');
