@@ -1,0 +1,29 @@
+{
+  "name": "digitalocean-ui",
+  "version": "1.0.0",
+  "description": "Built using React Native",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dzhuneyt/digitalocean-ui.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dzhuneyt/digitalocean-ui/issues"
+  },
+  "homepage": "https://github.com/Dzhuneyt/digitalocean-ui#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^9.1.2",
+    "@commitlint/config-conventional": "^9.1.2",
+    "husky": "^4.3.0"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  }
+}
