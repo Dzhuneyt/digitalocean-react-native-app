@@ -1,12 +1,12 @@
 import React from "react";
 import {FlatList, StyleSheet, Text, View} from "react-native";
 import RNRestart from "react-native-restart";
-import {Button, Header, Icon, Overlay, SearchBar} from 'react-native-elements';
+import {Header, Icon, Overlay} from 'react-native-elements';
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
 import {getAlias} from "../../helpers/digitalocean";
 import {DropletCreate} from "./DropletCreate";
-import {SingleDropletCard} from "../../partial_views/single-droplet-card";
+import {SingleDropletCard} from "../../partial_views/SingleDroplet/single-droplet-card";
 import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCard";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
 import {StackNavigationProp} from "@react-navigation/stack";
@@ -75,9 +75,13 @@ export class DropletList extends React.Component<{
                     renderItem={({item}) => <SingleDropletCard {...item}/>}
                     ListEmptyComponent={<NoDropletsAvailableCard
                         shown={!this.state.refreshing}
-                        onClick={() => this.setState({
+                        onClickCreateDroplet={() => this.setState({
                             createDropletDialogVisible: true,
-                        })}/>}
+                        })}
+                        onClickSwitchAccounts={() => {
+                            // @TODO redirect to accounts listing screen
+                        }}
+                    />}
                 />
 
                 <ActionButton buttonColor="rgba(231,76,60,1)">

@@ -2,26 +2,8 @@ import React from "react";
 import {StyleSheet, Text, View} from "react-native";
 import TimeAgo from 'react-native-timeago';
 import {Button, Card, Icon} from "react-native-elements";
-import {Droplet} from "../interfaces/Droplet";
-
-function getIpV4(networks: any) {
-    const ips: any[] = [];
-    if (!networks.hasOwnProperty('v4')) {
-        return "";
-    }
-    networks.v4.forEach((network: any) => {
-        ips.push(network.ip_address);
-    });
-    return ips.join(", ");
-}
-
-const humanFriendlySize = function (bytes: number) {
-    if (bytes == 0) {
-        return "0.00 B";
-    }
-    const e = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, e)).toFixed(0) + '' + ' KMGTP'.charAt(e) + 'B';
-};
+import {Droplet} from "../../interfaces/Droplet";
+import {getIpV4, humanFriendlySize} from "./util";
 
 export class SingleDropletCard extends React.Component<Droplet, any> {
     state = {expanded: false};

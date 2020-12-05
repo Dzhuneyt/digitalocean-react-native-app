@@ -1,29 +1,37 @@
 import React from "react";
-import {Button, Divider, Icon, Text} from "react-native-elements";
+import {Button, Icon, Text} from "react-native-elements";
 import {StyleSheet, View} from "react-native";
 
 export class NoDropletsAvailableCard extends React.PureComponent<{
-    onClick: Function,
+    onClickCreateDroplet: Function,
+    onClickSwitchAccounts: Function,
     shown: boolean,
 }> {
 
     render() {
-        return this.props.shown ? <View style={styles.container}>
+        if (!this.props.shown) {
+            return <></>;
+        }
+        return <View style={styles.container}>
             <Icon
-                size={80}
-                color={"#aaa"}
+                size={60}
                 type={"material"}
                 name='sentiment-dissatisfied'/>
-            <Text h4 style={styles.text}>No droplets available in this DigitalOcean account.</Text>
-            <Divider/>
             <Text
-                style={{
-                    ...styles.text
-                }}>Try creating some, or switch to a different DigitalOcean account using the
-                icons at the bottom right side.</Text>
-            <Divider/>
-            <Divider/>
-        </View> : <></>;
+                h4
+                style={styles.text}>
+                No droplets available in this DigitalOcean account.
+            </Text>
+            <View style={styles.buttonsContainer}>
+                <Button
+                    title={'Create a droplet'}
+                    onPress={() => this.props.onClickCreateDroplet()}/>
+                <View style={{height: 10}}/>
+                <Button
+                    title={'Switch DigitalOcean accounts'}
+                    onPress={() => this.props.onClickSwitchAccounts()}/>
+            </View>
+        </View>;
     }
 }
 
@@ -31,6 +39,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         marginTop: 25,
+    },
+    buttonsContainer: {
+        flex: 1,
+        flexDirection: "column",
+        marginRight: 10,
+        marginLeft: 10,
     },
     text: {
         textAlign: 'center',
