@@ -5,7 +5,9 @@ import {Button, Card, Icon} from "react-native-elements";
 import {Droplet} from "../../interfaces/Droplet";
 import {getIpV4, humanFriendlySize} from "./util";
 
-export class SingleDropletCard extends React.Component<Droplet, any> {
+export class SingleDropletCard extends React.Component<{
+    droplet: Droplet,
+}, any> {
     state = {expanded: false};
 
     private interval: any;
@@ -22,20 +24,20 @@ export class SingleDropletCard extends React.Component<Droplet, any> {
                     justifyContent: 'flex-start',
                     alignItems: 'center'
                 }}>
-                    {this.props.status === "new" && <Icon
+                    {this.props.droplet.status === "new" && <Icon
                         type='material'
                         name='cloud-upload'
                         color='grey'/>}
-                    {this.props.status === "active" && <Icon
+                    {this.props.droplet.status === "active" && <Icon
                         type='material'
                         name='cloud'
                         color='#009688'/>}
-                    {this.props.status === "off" && <Icon
+                    {this.props.droplet.status === "off" && <Icon
                         type='material'
                         name='cloud-off'
                         color='#FF1744'/>}
                     <Text
-                        style={{marginLeft: 10}}>{this.props.name} ({humanFriendlySize(this.props.memory * 1024 * 1024)}, {this.props.region.slug.toUpperCase()})</Text>
+                        style={{marginLeft: 10}}>{this.props.droplet.name} ({humanFriendlySize(this.props.droplet.memory * 1024 * 1024)}, {this.props.droplet.region.slug.toUpperCase()})</Text>
                 </View>
 
                 <View>
@@ -62,27 +64,27 @@ export class SingleDropletCard extends React.Component<Droplet, any> {
                 this.state.expanded ? {display: 'flex'} : {display: 'none'}
             ]}>
                 <Text style={styles.dropletInfo}>
-                    RAM: {humanFriendlySize(this.props.memory * 1024 * 1024)}
+                    RAM: {humanFriendlySize(this.props.droplet.memory * 1024 * 1024)}
                 </Text>
 
                 <Text style={styles.dropletInfo}>
-                    Disk: {this.props.disk} GB
+                    Disk: {this.props.droplet.disk} GB
                 </Text>
 
                 <Text style={styles.dropletInfo}>
-                    Region: {this.props.region.name}
+                    Region: {this.props.droplet.region.name}
                 </Text>
 
                 <Text style={styles.dropletInfo}>
-                    IP: {getIpV4(this.props.networks)}
+                    IP: {getIpV4(this.props.droplet.networks)}
                 </Text>
 
                 <Text style={styles.dropletInfo}>
-                    Image: {this.props.image.distribution} {this.props.image.name}
+                    Image: {this.props.droplet.image.distribution} {this.props.droplet.image.name}
                 </Text>
 
                 <Text style={styles.dropletInfo}>
-                    Created: <TimeAgo time={this.props.created_at}/>
+                    Created: <TimeAgo time={this.props.droplet.created_at}/>
                 </Text>
 
                 <View style={[{

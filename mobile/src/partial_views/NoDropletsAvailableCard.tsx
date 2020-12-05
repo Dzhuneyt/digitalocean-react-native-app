@@ -5,13 +5,9 @@ import {StyleSheet, View} from "react-native";
 export class NoDropletsAvailableCard extends React.PureComponent<{
     onClickCreateDroplet: Function,
     onClickSwitchAccounts: Function,
-    shown: boolean,
 }> {
 
     render() {
-        if (!this.props.shown) {
-            return <></>;
-        }
         return <View style={styles.container}>
             <Icon
                 size={60}

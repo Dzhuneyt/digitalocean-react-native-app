@@ -1,7 +1,6 @@
-import {Component} from "react";
-import React from "react";
+import React, {Component} from "react";
 import {ScrollView, StyleSheet} from "react-native";
-import {Button, Input, Text} from 'react-native-elements';
+import {Button, Input} from 'react-native-elements';
 import {ISize} from "dots-wrapper/dist/modules/size";
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import {IRegion} from "dots-wrapper/dist/modules/region";
@@ -10,21 +9,23 @@ import {IImage} from "dots-wrapper/dist/modules/image";
 import {ISshKey} from "dots-wrapper/dist/modules/ssh-key";
 import Snackbar from 'react-native-snackbar';
 
+interface DropletCreateState {
+    availableRegions: IRegion[],
+    availableSizes: ISize[],
+    availableImages: IImage[],
+    sshKeys: ISshKey[],
+    currentRegion: IRegion | null,
+    currentSize: ISize | null,
+    currentImage: IImage | null,
+    currentSshKey: ISshKey | null,
+    name: string,
+}
+
 export class DropletCreate extends Component<{
     currentApiToken?: string,
     onCreate: Function,
 }, any> {
-    state: {
-        availableRegions: IRegion[],
-        availableSizes: ISize[],
-        availableImages: IImage[],
-        sshKeys: ISshKey[],
-        currentRegion: IRegion | null,
-        currentSize: ISize | null,
-        currentImage: IImage | null,
-        currentSshKey: ISshKey | null,
-        name: string,
-    } = {
+    state: DropletCreateState = {
         availableRegions: [],
         availableSizes: [],
         availableImages: [],
@@ -221,10 +222,14 @@ export class DropletCreate extends Component<{
             sshKey: this.state.currentSshKey?.id as number,
         };
         this.getDigitalOceanService().createDroplet(config).then(value => {
-            console.log(value);
-            console.log('Droplet creation success');
+            if (value) {
+                console.log(value);
+                console.log('Droplet creation success');
 
-            this.props.onCreate();
+                this.props.onCreate();
+            } else {
+                console.error('Droplet creation failed with errors');
+            }
         }).catch(err => {
             console.error(err);
             console.log('Droplet creation FAILED');

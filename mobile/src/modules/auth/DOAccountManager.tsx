@@ -4,7 +4,7 @@ import {Button, Card, Header, Icon, Overlay} from "react-native-elements";
 import auth from '@react-native-firebase/auth';
 import {DOAccountManager_CreateNewToken} from "./DOAccountManager_CreateNewToken";
 import firestore from "@react-native-firebase/firestore";
-import {getAlias, getAliasDocumentReference} from "../../helpers/digitalocean";
+import {getToken, getTokenReference} from "../../helpers/digitalocean";
 import {Token} from "../../interfaces/Token";
 import ActionButton from "react-native-action-button";
 
@@ -66,13 +66,13 @@ export class DOAccountManager extends React.Component<{
             <Header
                 statusBarProps={{translucent: true}}
                 placement="left"
-                leftComponent={{
-                    icon: 'menu', color: '#fff', onPress: () => {
-                        alert('bla')
-                    }
-                }}
-                centerComponent={{text: 'DigitalOcean - Accounts (API keys)', style: {color: '#fff'}}}
-                rightComponent={{icon: 'home', color: '#fff'}}
+                // leftComponent={{
+                //     icon: 'menu', color: '#fff', onPress: () => {
+                //         alert('bla')
+                //     }
+                // }}
+                centerComponent={{text: 'DigitalOcean - Accounts', style: {color: '#fff'}}}
+                // rightComponent={{icon: 'home', color: '#fff'}}
             />
             {this.state.accounts &&
             <FlatList
@@ -90,7 +90,7 @@ export class DOAccountManager extends React.Component<{
                                 style={{
                                     flexGrow: 1,
                                 }}
-                                onPress={() => this.goToDropletListingForAlias(item.alias)}>
+                                onPress={() => this.goToDropletListingForToken(item.alias)}>
                                 <Text>Name: {item.alias}</Text>
                             </TouchableHighlight>
                             <Button
@@ -98,7 +98,7 @@ export class DOAccountManager extends React.Component<{
                                 title=' Droplets'
                                 accessibilityLabel='Droplets listing'
                                 icon={() => <Icon color="#fff" name='dns' type='material'/>}
-                                onPress={() => this.goToDropletListingForAlias(item.alias)}
+                                onPress={() => this.goToDropletListingForToken(item.alias)}
                             />
                             <View style={{width: 10}}/>
                             <Button
@@ -229,15 +229,15 @@ export class DOAccountManager extends React.Component<{
         return true;
     }
 
-    async goToDropletListingForAlias(alias: string) {
-        const doc = await getAlias(alias);
+    async goToDropletListingForToken(token: string) {
+        const tokenReference = await getToken(token);
         this.props.navigation.navigate("Droplets", {
-            alias: doc.ref.id,
+            alias: tokenReference.ref.id,
         });
     }
 
     private deleteAlias(alias: any) {
-        getAliasDocumentReference(alias)
+        getTokenReference(alias)
             .then(doc => {
                 doc.delete().then(() => {
                     console.log('DO account delete success');

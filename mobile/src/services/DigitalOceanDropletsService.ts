@@ -1,6 +1,5 @@
 import {DigitalOceanBaseService} from "./DigitalOceanBaseService";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
-import {sshKey} from "dots-wrapper/dist/modules";
 
 export class DigitalOceanDropletsService extends DigitalOceanBaseService {
 
@@ -25,6 +24,7 @@ export class DigitalOceanDropletsService extends DigitalOceanBaseService {
             ]
         });
         console.log(JSON.stringify(res, null, 2));
+        return res.status === 202;
     }
 
     async images() {

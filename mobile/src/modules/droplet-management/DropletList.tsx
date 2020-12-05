@@ -1,10 +1,10 @@
 import React from "react";
-import {FlatList, StyleSheet, Text, View} from "react-native";
+import {FlatList, StyleSheet, View} from "react-native";
 import RNRestart from "react-native-restart";
 import {Header, Icon, Overlay} from 'react-native-elements';
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
-import {getAlias} from "../../helpers/digitalocean";
+import {getToken} from "../../helpers/digitalocean";
 import {DropletCreate} from "./DropletCreate";
 import {SingleDropletCard} from "../../partial_views/SingleDroplet/single-droplet-card";
 import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCard";
@@ -22,19 +22,23 @@ export class DropletList extends React.Component<{
     route: any,
     navigation: StackNavigationProp<any>,
 }, {
+    // Current list of droplets, as retrieved from the API
     droplets: IDroplet[],
+
+    // If the list of droplets is currently refreshing
     refreshing: boolean,
-    createDropletDialogVisible: boolean,
+    createDropletDialogIsVisible: boolean,
     currentApiToken?: string,
 }> {
     state = {
         droplets: [],
         refreshing: true,
-        createDropletDialogVisible: false,
+        createDropletDialogIsVisible: false,
         currentApiToken: '',
     };
 
-    private _intervalForRefreshingUI: any;
+    private _intervalForRefreshingDropletList: NodeJS.Timeout | undefined;
+    private dropletsService: DigitalOceanDropletsService | undefined;
 
     render() {
         return <>
@@ -52,13 +56,13 @@ export class DropletList extends React.Component<{
                 />
                 <Overlay
                     fullScreen={false}
-                    isVisible={this.state.createDropletDialogVisible}
-                    onBackdropPress={() => this.setState({createDropletDialogVisible: false})}
+                    isVisible={this.state.createDropletDialogIsVisible}
+                    onBackdropPress={() => this.setState({createDropletDialogIsVisible: false})}
                 >
                     <DropletCreate
                         currentApiToken={this.state.currentApiToken}
                         onCreate={() => {
-                            this.setState({createDropletDialogVisible: false});
+                            this.setState({createDropletDialogIsVisible: false});
                             Snackbar.show({
                                 text: "Droplet creation started. Check back in a minute...",
                                 duration: Snackbar.LENGTH_SHORT,
@@ -72,23 +76,26 @@ export class DropletList extends React.Component<{
                     refreshing={this.state.refreshing}
                     data={this.getDroplets()}
                     keyExtractor={(item: any) => String(item.id)}
-                    renderItem={({item}) => <SingleDropletCard {...item}/>}
-                    ListEmptyComponent={<NoDropletsAvailableCard
-                        shown={!this.state.refreshing}
-                        onClickCreateDroplet={() => this.setState({
-                            createDropletDialogVisible: true,
-                        })}
-                        onClickSwitchAccounts={() => {
-                            // @TODO redirect to accounts listing screen
-                        }}
+                    renderItem={({item}) => <SingleDropletCard
+                        droplet={item}
                     />}
+                    ListEmptyComponent={!this.state.refreshing ? <NoDropletsAvailableCard
+                        // Open "create new droplet" dialog
+                        onClickCreateDroplet={() => this.setState({
+                            createDropletDialogIsVisible: true,
+                        })}
+                        // Go back to DO account listing screen
+                        onClickSwitchAccounts={() => {
+                            this.props.navigation.goBack();
+                        }}
+                    /> : <></>}
                 />
 
                 <ActionButton buttonColor="rgba(231,76,60,1)">
                     <ActionButton.Item
                         buttonColor="#9b59b6"
                         title="Create a droplet"
-                        onPress={() => this.setState({createDropletDialogVisible: true})}>
+                        onPress={() => this.setState({createDropletDialogIsVisible: true})}>
                         <Icon color='#fff' name="add-circle" style={styles.actionButtonIcon}/>
                     </ActionButton.Item>
                     <ActionButton.Item
@@ -116,10 +123,10 @@ export class DropletList extends React.Component<{
         }
 
         console.log('Refreshing droplets...');
-        const dropletsService = new DigitalOceanDropletsService(this.state.currentApiToken);
+        this.dropletsService = new DigitalOceanDropletsService(this.state.currentApiToken);
 
         try {
-            const droplets = await dropletsService.getDroplets();
+            const droplets = await this.dropletsService.getDroplets();
             this.setState({
                 droplets: droplets.sort((a: any, b: any) => {
                     return a.created_at - b.created_at;
@@ -141,54 +148,28 @@ export class DropletList extends React.Component<{
     }
 
     async componentDidMount(): Promise<void> {
-        console.log(this.props.route)
-        this.props.navigation.setOptions({
-            headerRight: () => (
-                <View style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    alignContent: "center",
-                    alignSelf: "center"
-                }}>
-                    <Text
-                        style={{
-                            marginRight: 10,
-                            alignSelf: 'center'
-                        }}
-                        onPress={() => this.setState({createDropletDialogVisible: true})}
-                    >Create new droplet</Text>
-                    <Text
-                        style={{
-                            marginRight: 10,
-                            alignSelf: 'center'
-                        }}
-                        onPress={() => {
-                            this.props.navigation.goBack();
-                        }}
-                    >Manage accounts</Text>
-                </View>
-            ),
-        });
-
         if (!this.props.route.params['alias']) {
-            throw new Error('Can not list droplets for unknown DO account');
+            throw new Error('Attempted to list droplets but no DigitalOcean account provided');
         }
 
-        const alias = await getAlias(this.props.route.params['alias']);
-        console.log(alias);
+        const alias = await getToken(this.props.route.params['alias']);
         this.setState({
             currentApiToken: String(alias.get('token')),
         });
+        this.dropletsService = new DigitalOceanDropletsService(this.state.currentApiToken);
+
         await this.refresh(true);
 
         // Refresh the droplet list every 10 seconds
-        this._intervalForRefreshingUI = setInterval(async () => {
+        this._intervalForRefreshingDropletList = setInterval(async () => {
             await this.refresh(false);
         }, 10000);
     }
 
     componentWillUnmount() {
-        clearInterval(this._intervalForRefreshingUI);
+        if (this._intervalForRefreshingDropletList) {
+            clearInterval(this._intervalForRefreshingDropletList);
+        }
     }
 }
 
