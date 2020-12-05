@@ -1,7 +1,7 @@
 import React from "react";
 import {StyleSheet, Text, View} from "react-native";
 import TimeAgo from 'react-native-timeago';
-import {Card, Icon} from "react-native-elements";
+import {Button, Card, Icon} from "react-native-elements";
 import {Droplet} from "../interfaces/Droplet";
 
 function getIpV4(networks: any) {
@@ -73,7 +73,8 @@ export class SingleDropletCard extends React.Component<Droplet, any> {
 
 
             <View style={[{
-                flex: 1, flexDirection: 'column',
+                flex: 1,
+                flexDirection: 'column',
                 paddingTop: 10,
             },
                 this.state.expanded ? {display: 'flex'} : {display: 'none'}
@@ -101,6 +102,48 @@ export class SingleDropletCard extends React.Component<Droplet, any> {
                 <Text style={styles.dropletInfo}>
                     Created: <TimeAgo time={this.props.created_at}/>
                 </Text>
+
+                <View style={[{
+                    flex: 1,
+                    flexDirection: 'column',
+                    paddingTop: 10,
+                }]}>
+                    <Button
+                        icon={<Icon
+                            style={{
+                                alignSelf: 'flex-end'
+                            }}
+                            type='font-awesome'
+                            name={'refresh'}
+                            color='#fff'
+                            containerStyle={{
+                                marginRight: 10,
+                            }}
+                            accessibilityLabel={'Restart'}
+                        />}
+                        title={'Restart'}
+                    >
+                    </Button>
+
+                    <View style={{height: 10}}/>
+
+                    <Button
+                        icon={<Icon
+                            style={{
+                                alignSelf: 'flex-end'
+                            }}
+                            type='font-awesome'
+                            name={'stop'}
+                            color='#fff'
+                            containerStyle={{
+                                marginRight: 10
+                            }}
+                            accessibilityLabel={'Shut down'}
+                        />}
+                        title={'Shut down'}
+                    >
+                    </Button>
+                </View>
 
             </View>
         </Card>
