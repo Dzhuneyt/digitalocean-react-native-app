@@ -37,5 +37,34 @@ export class DigitalOceanDropletsService extends DigitalOceanBaseService {
         return images;
     }
 
+    async restartDroplet(id: number) {
+        const client = await this.getClient();
+        let {status, data} = await client.droplet.rebootDroplet({droplet_id: id});
+        if (status !== 201) {
+            console.error(JSON.stringify(data, null, 2));
+            throw new Error(`Can not restart droplet due to errors`);
+        }
+        return status === 201;
+    }
+
+    async shutdownDroplet(id: number) {
+        const client = await this.getClient();
+        let {status, data} = await client.droplet.shutdownDroplet({droplet_id: id});
+        if (status !== 201) {
+            console.error(JSON.stringify(data, null, 2));
+            throw new Error(`Can not shutdown droplet due to errors`);
+        }
+        return status === 201;
+    }
+
+    async powerOnDroplet(id: number) {
+        const client = await this.getClient();
+        let {status, data} = await client.droplet.powerOnDroplet({droplet_id: id});
+        if (status !== 201) {
+            console.error(JSON.stringify(data, null, 2));
+            throw new Error(`Can not power on droplet due to errors`);
+        }
+        return status === 201;
+    }
 
 }

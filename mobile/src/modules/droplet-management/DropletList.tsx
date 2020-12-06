@@ -38,7 +38,7 @@ export class DropletList extends React.Component<{
     };
 
     private _intervalForRefreshingDropletList: NodeJS.Timeout | undefined;
-    private dropletsService: DigitalOceanDropletsService | undefined;
+    private dropletsService!: DigitalOceanDropletsService;
 
     render() {
         return <>
@@ -78,6 +78,7 @@ export class DropletList extends React.Component<{
                     keyExtractor={(item: any) => String(item.id)}
                     renderItem={({item}) => <SingleDropletCard
                         droplet={item}
+                        dropletsService={this.dropletsService}
                     />}
                     ListEmptyComponent={!this.state.refreshing ? <NoDropletsAvailableCard
                         // Open "create new droplet" dialog
