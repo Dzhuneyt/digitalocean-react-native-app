@@ -1,7 +1,7 @@
 import React from "react";
 import {FlatList, StyleSheet, View} from "react-native";
 import RNRestart from "react-native-restart";
-import {Header, Icon, Overlay} from 'react-native-elements';
+import {Header, Overlay} from 'react-native-elements';
 import {DigitalOceanDropletsService} from "../../services/DigitalOceanDropletsService";
 import auth from '@react-native-firebase/auth';
 import {getToken} from "../../helpers/digitalocean";
@@ -9,9 +9,7 @@ import {DropletCreate} from "./DropletCreate";
 import {SingleDropletCard} from "../../partial_views/SingleDroplet/single-droplet-card";
 import {NoDropletsAvailableCard} from "../../partial_views/NoDropletsAvailableCard";
 import {IDroplet} from "dots-wrapper/dist/modules/droplet";
-import {StackNavigationProp} from "@react-navigation/stack";
-import ActionButton from "react-native-action-button";
-import Snackbar from "react-native-snackbar";
+import {FAB, Snackbar} from 'react-native-paper';
 
 const logout = async () => {
     await auth().signOut();
@@ -20,7 +18,7 @@ const logout = async () => {
 
 export class DropletList extends React.Component<{
     route: any,
-    navigation: StackNavigationProp<any>,
+    navigation: any,
 }, {
     // Current list of droplets, as retrieved from the API
     droplets: IDroplet[],
@@ -29,27 +27,30 @@ export class DropletList extends React.Component<{
     refreshing: boolean,
     createDropletDialogIsVisible: boolean,
     currentApiToken?: string,
+    snackbarMessage?: string,
 }> {
     state = {
         droplets: [],
         refreshing: true,
         createDropletDialogIsVisible: false,
         currentApiToken: '',
+        snackbarMessage: undefined
     };
 
     private _intervalForRefreshingDropletList: NodeJS.Timeout | undefined;
     private dropletsService!: DigitalOceanDropletsService;
 
     render() {
+
         return <>
             <View style={{flex: 1}}>
                 <Header
                     statusBarProps={{translucent: true}}
                     placement="left"
                     leftComponent={{
-                        icon: 'menu', color: '#fff', onPress: () => {
-                            alert('bla')
-                        }
+                        icon: 'menu',
+                        color: '#fff',
+                        onPress: () => this.props.navigation.toggleDrawer(),
                     }}
                     centerComponent={{text: 'DigitalOcean - Droplets', style: {color: '#fff'}}}
                     rightComponent={{icon: 'home', color: '#fff'}}
@@ -63,23 +64,27 @@ export class DropletList extends React.Component<{
                         currentApiToken={this.state.currentApiToken}
                         onCreate={() => {
                             this.setState({createDropletDialogIsVisible: false});
-                            Snackbar.show({
-                                text: "Droplet creation started. Check back in a minute...",
-                                duration: Snackbar.LENGTH_SHORT,
-                                backgroundColor: "green"
-                            });
+                            this.showMessage("Droplet creation started. Check back in a minute...");
                         }}
                     />
                 </Overlay>
                 <FlatList
+                    // Callback when "pull to refresh" happens in the UI
                     onRefresh={() => this.refresh()}
+                    // Flag that tells the component that there is currently an API call in progress
+                    // This will show a small spinner on top of the component, as long as this is "true"
                     refreshing={this.state.refreshing}
-                    data={this.getDroplets()}
+                    // The data array that's shown in the list
+                    data={this.state.droplets}
+                    // Utility function that tells the component how to identity the uniqueness
+                    // of every item in the list. In other words, where the ID of each item is located
                     keyExtractor={(item: any) => String(item.id)}
+                    // Component that visualizes a single item in the list
                     renderItem={({item}) => <SingleDropletCard
                         droplet={item}
                         dropletsService={this.dropletsService}
                     />}
+                    // Render this component when the list is empty
                     ListEmptyComponent={!this.state.refreshing ? <NoDropletsAvailableCard
                         // Open "create new droplet" dialog
                         onClickCreateDroplet={() => this.setState({
@@ -91,27 +96,25 @@ export class DropletList extends React.Component<{
                         }}
                     /> : <></>}
                 />
+                <FAB
+                    focusable={true}
+                    accessibilityValue={null}
+                    style={styles.fab}
+                    visible={true}
+                    label={"Create a droplet"}
+                    icon="plus"
+                    onPress={() => this.setState({
+                        createDropletDialogIsVisible: true,
+                    })}
+                />
 
-                <ActionButton buttonColor="rgba(231,76,60,1)">
-                    <ActionButton.Item
-                        buttonColor="#9b59b6"
-                        title="Create a droplet"
-                        onPress={() => this.setState({createDropletDialogIsVisible: true})}>
-                        <Icon color='#fff' name="add-circle" style={styles.actionButtonIcon}/>
-                    </ActionButton.Item>
-                    <ActionButton.Item
-                        buttonColor="#3498db"
-                        title="Switch Accounts"
-                        onPress={() => this.props.navigation.goBack()}>
-                        <Icon color='#fff' name="people" style={styles.actionButtonIcon}/>
-                    </ActionButton.Item>
-                </ActionButton>
+                <Snackbar
+                    duration={5000}
+                    onDismiss={() => this.setState({snackbarMessage: undefined})}
+                    visible={!!this.state.snackbarMessage}>
+                    {this.state.snackbarMessage}</Snackbar>
             </View>
         </>;
-    }
-
-    getDroplets() {
-        return this.state.droplets;
     }
 
     /**
@@ -124,7 +127,7 @@ export class DropletList extends React.Component<{
         }
 
         console.log('Refreshing droplets...');
-        this.dropletsService = new DigitalOceanDropletsService(this.state.currentApiToken);
+
 
         try {
             const droplets = await this.dropletsService.getDroplets();
@@ -172,6 +175,12 @@ export class DropletList extends React.Component<{
             clearInterval(this._intervalForRefreshingDropletList);
         }
     }
+
+    private showMessage(message: string) {
+        this.setState({
+            snackbarMessage: message,
+        });
+    }
 }
 
 const styles = StyleSheet.create({
@@ -179,5 +188,11 @@ const styles = StyleSheet.create({
         fontSize: 20,
         height: 22,
         color: 'white',
+    },
+    fab: {
+        position: 'absolute',
+        margin: 16,
+        right: 0,
+        bottom: 0,
     },
 });

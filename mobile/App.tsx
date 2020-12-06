@@ -10,14 +10,110 @@
  */
 
 import React from 'react';
-import {NavigationContainer} from "@react-navigation/native";
-import {createStackNavigator} from "@react-navigation/stack";
 import {DOAccountManager} from "./src/modules/auth/DOAccountManager";
 import {Login} from "./src/modules/auth/Login";
-import {DropletList} from "./src/modules/droplet-management/DropletList";
 import auth from "@react-native-firebase/auth";
+import {
+    Button,
+    Dialog,
+    Divider,
+    Drawer,
+    Menu,
+    Portal,
+    Provider as PaperProvider,
+    RadioButton,
+    Text
+} from 'react-native-paper';
+import {View} from 'react-native';
+import {NavigationContainer} from "@react-navigation/native";
+import {createDrawerNavigator} from "@react-navigation/drawer";
+import {DropletList} from "./src/modules/droplet-management/DropletList";
 
-const Stack = createStackNavigator();
+const drawerNavigator = createDrawerNavigator();
+
+// @ts-ignore
+function DrawerContent({navigation}) {
+    const [switchAccountDialogVisible, setSwitchAccountDialogVisible] = React.useState(false);
+    return (
+        <View style={{flex: 1}}>
+
+            <Text style={{alignSelf: "center"}}>Current account: default</Text>
+            <Menu
+                visible={false}
+                onDismiss={() => null}
+                anchor={
+                    <Button onPress={() => setSwitchAccountDialogVisible(true)}>
+                        Switch account
+                    </Button>
+                }>
+                <Menu.Item onPress={() => {
+                }} title="Item 1"/>
+                <Menu.Item onPress={() => {
+                }} title="Item 2"/>
+                <Menu.Item onPress={() => {
+                }} title="Item 3"/>
+            </Menu>
+            <Divider/>
+            <Drawer.Section>
+                <Drawer.Item
+                    label="Droplets"
+                    active={false}
+                    onPress={() => navigation.navigate('Droplets')}
+                />
+                <Drawer.Item
+                    label="Privacy Policy"
+                    active={false}
+                    onPress={() => navigation.navigate('PrivacyPolicy')}
+                />
+            </Drawer.Section>
+            <Portal>
+                <Dialog visible={switchAccountDialogVisible} onDismiss={() => {
+                }}>
+                    <Dialog.Title>Select account</Dialog.Title>
+                    <Dialog.Content>
+                        <RadioButton.Group onValueChange={value => null} value={""}>
+                            <RadioButton.Item label="First item" value="first"/>
+                            <RadioButton.Item label="Second item" value="second"/>
+                        </RadioButton.Group>
+                    </Dialog.Content>
+                </Dialog>
+            </Portal>
+        </View>
+    );
+}
+
+export const RootNavigator = () => {
+    return (
+        <drawerNavigator.Navigator
+            screenOptions={{
+                headerShown: false,
+            }}
+            initialRouteName={"Accounts"}
+            drawerType={"slide"}
+            drawerStyle={{width: 200, marginTop: 30}}
+            drawerContent={(props: JSX.IntrinsicAttributes & { navigation: any; }) => <DrawerContent {...props}/>}>
+            <drawerNavigator.Screen
+                name="Login"
+                component={Login}
+                options={{
+                    title: 'Login',
+                    drawerIcon: props => null,
+                    drawerLabel: () => null,
+                }}
+            />
+            <drawerNavigator.Screen
+                name="Accounts"
+                component={DOAccountManager}
+                options={{title: 'DigitalOcean - Accounts'}}
+            />
+            <drawerNavigator.Screen
+                name="Droplets"
+                component={DropletList}
+                options={{title: 'DigitalOcean - Droplets'}}
+            />
+        </drawerNavigator.Navigator>
+    );
+};
 
 class App extends React.Component<any, any> {
     state = {
@@ -33,29 +129,11 @@ class App extends React.Component<any, any> {
         }
         return (
             <>
-                <NavigationContainer>
-                    <Stack.Navigator
-                        screenOptions={{
-                            headerShown: false
-                        }}
-                        initialRouteName={this.state.initialScreen}>
-                        <Stack.Screen
-                            name="Login"
-                            component={Login}
-                            options={{title: 'Login'}}
-                        />
-                        <Stack.Screen
-                            name="DOAccountManager"
-                            component={DOAccountManager}
-                            options={{title: 'DigitalOcean - API Keys'}}
-                        />
-                        <Stack.Screen
-                            name="Droplets"
-                            component={DropletList}
-                            options={{title: 'DigitalOcean - Droplets Management'}}
-                        />
-                    </Stack.Navigator>
-                </NavigationContainer>
+                <PaperProvider>
+                    <NavigationContainer>
+                        <RootNavigator/>
+                    </NavigationContainer>
+                </PaperProvider>
             </>
         );
     }

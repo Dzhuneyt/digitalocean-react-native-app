@@ -67,4 +67,14 @@ export class DigitalOceanDropletsService extends DigitalOceanBaseService {
         return status === 201;
     }
 
+    async deleteDroplet(id: number) {
+        const client = await this.getClient();
+        let {status, data} = await client.droplet.deleteDroplet({droplet_id: id});
+        if (status !== 204) {
+            console.error(JSON.stringify(data, null, 2));
+            throw new Error(`Can not delete droplet due to errors`);
+        }
+        return status === 204;
+    }
+
 }

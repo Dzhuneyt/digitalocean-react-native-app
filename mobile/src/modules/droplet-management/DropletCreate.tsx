@@ -8,6 +8,7 @@ import {Picker} from '@react-native-community/picker';
 import {IImage} from "dots-wrapper/dist/modules/image";
 import {ISshKey} from "dots-wrapper/dist/modules/ssh-key";
 import Snackbar from 'react-native-snackbar';
+import {Text} from "react-native-paper";
 
 interface DropletCreateState {
     availableRegions: IRegion[],
@@ -19,6 +20,7 @@ interface DropletCreateState {
     currentImage: IImage | null,
     currentSshKey: ISshKey | null,
     name: string,
+    showDropDown: boolean,
 }
 
 export class DropletCreate extends Component<{
@@ -35,9 +37,10 @@ export class DropletCreate extends Component<{
         currentImage: null,
         currentSshKey: null,
         name: "",
+        showDropDown: false,
     };
 
-    private doService?: DigitalOceanDropletsService = undefined;
+    private digitalOceanDropletsService?: DigitalOceanDropletsService = undefined;
 
     private getAvailableRegionsForSize(size: ISize | null) {
         if (size) {
@@ -82,8 +85,6 @@ export class DropletCreate extends Component<{
                 }
                 return true;
             });
-        console.log('Original list length', images.length)
-        console.log('Filtered list length', filteredImages.length);
 
         filteredImages.forEach(image => {
             console.log(image.distribution, image.name, image.size_gigabytes, image.min_disk_size, image.created_at)
@@ -131,7 +132,7 @@ export class DropletCreate extends Component<{
                     style={styles.picker}
                     mode="dropdown"
                     accessibilityLabel='Droplet Size'
-                    selectedValue={this.state.currentSize?.slug}
+                    selectedValue={this.selectedSize()}
                     onValueChange={(itemValue) => {
                         const currentSize = this.state
                             .availableSizes
@@ -145,7 +146,7 @@ export class DropletCreate extends Component<{
                 <Picker
                     style={styles.picker}
                     accessibilityLabel='Region'
-                    selectedValue={this.state.currentRegion?.slug}
+                    selectedValue={this.selectedRegion()}
                     mode="dropdown"
                     onValueChange={(itemValue) => {
                         const currentRegion = this.state
@@ -187,30 +188,70 @@ export class DropletCreate extends Component<{
                 >
                     {sshKeysForPicker}
                 </Picker>
+                <Button
+                    disabled={!this.formIsValid()}
+                    onPress={() => this.createDroplet()}
+                    title="Create a droplet"
+                    style={{marginVertical: 20}}
+                />
+                <Text style={[
+                    {
+                        textAlign: "center",
+                        marginTop: 10,
+                    },
+                    this.formIsValid() ? {display: 'none'} : {display: 'flex'},
+                ]}>Fill all fields to continue</Text>
             </ScrollView>
-            <Button
-                disabled={!this.formIsValid()}
-                onPress={() => this.createDroplet()}
-                title="Create a droplet"
-            />
+
         </>;
     }
 
+    private selectedRegion() {
+        if (!this.state.currentRegion) {
+            const defaultRegion = this.state.availableRegions.find(value => value.slug === 'FRA1');
+            if (defaultRegion) {
+                return defaultRegion.slug;
+            } else {
+                return undefined;
+            }
+        }
+        return this.state.currentRegion?.slug;
+    }
+
+    private selectedSize() {
+        if (!this.state.currentSize) {
+            return this.state.availableSizes
+                .sort((a: ISize, b: ISize) => a.memory - b.memory)
+                .find(() => true)!.slug;
+        }
+        return this.state.currentSize?.slug;
+    }
+
     async componentDidMount() {
+        const availableRegions = await this.getDigitalOceanService().getRegions();
+        const availableSizes = await this.getDigitalOceanService().getSizes();
+        const availableImages = await this.getDigitalOceanService().getDistributions();
+        const sshKeys = await this.getDigitalOceanService().sshKeys();
+
+        console.log('Regions', JSON.stringify(availableRegions, null, 2));
+        console.log('Sizes', JSON.stringify(availableSizes, null, 2));
+        console.log('Images', JSON.stringify(availableImages, null, 2));
+        console.log('SSH Keys', JSON.stringify(sshKeys, null, 2));
+
         this.setState({
-            availableRegions: await this.getDigitalOceanService().getRegions(),
-            availableSizes: await this.getDigitalOceanService().getSizes(),
-            availableImages: await this.getDigitalOceanService().getDistributions(),
-            sshKeys: await this.getDigitalOceanService().sshKeys(),
+            availableRegions,
+            availableSizes,
+            availableImages,
+            sshKeys,
         });
     }
 
     private getDigitalOceanService() {
-        if (this.doService === undefined) {
+        if (this.digitalOceanDropletsService === undefined) {
             console.log(this.props);
-            this.doService = new DigitalOceanDropletsService(this.props.currentApiToken);
+            this.digitalOceanDropletsService = new DigitalOceanDropletsService(this.props.currentApiToken);
         }
-        return this.doService;
+        return this.digitalOceanDropletsService;
     }
 
     private async createDroplet() {
@@ -258,4 +299,9 @@ const styles = StyleSheet.create({
     picker: {
         marginLeft: 5
     },
+    containerStyle: {
+        flex: 1,
+        justifyContent: 'center',
+    }
+
 });

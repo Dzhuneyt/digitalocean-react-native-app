@@ -1,6 +1,8 @@
 import React from "react";
-import {Button, Icon, Text} from "react-native-elements";
+import {Button, Icon} from "react-native-elements";
 import {StyleSheet, View} from "react-native";
+import {Title} from 'react-native-paper';
+
 
 export class NoDropletsAvailableCard extends React.PureComponent<{
     onClickCreateDroplet: Function,
@@ -13,11 +15,11 @@ export class NoDropletsAvailableCard extends React.PureComponent<{
                 size={60}
                 type={"material"}
                 name='sentiment-dissatisfied'/>
-            <Text
-                h4
-                style={styles.text}>
+            <Title
+                style={styles.text}
+            >
                 No droplets available in this DigitalOcean account.
-            </Text>
+            </Title>
             <View style={styles.buttonsContainer}>
                 <Button
                     title={'Create a droplet'}
@@ -44,6 +46,7 @@ const styles = StyleSheet.create({
     },
     text: {
         textAlign: 'center',
-        margin: 15,
+        marginHorizontal: 25,
+        marginVertical: 20,
     }
 })

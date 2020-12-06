@@ -17,6 +17,19 @@ export class SingleDropletCard extends React.Component<{
     };
 
     render() {
+        const getStatus = () => {
+            switch (this.props.droplet.status) {
+                case "new":
+                    return "Initializing";
+                case "active":
+                    return "Active";
+                case "off":
+                    return "Turned off";
+                case "archive":
+                    return "Archived";
+            }
+        };
+
         return <Card>
             <View style={styles.container}>
                 <View style={styles.subContainer}>
@@ -58,6 +71,9 @@ export class SingleDropletCard extends React.Component<{
                 this.state.expanded ? {display: 'flex'} : {display: 'none'}
             ]}>
                 <Text style={styles.dropletInfo}>
+                    Status: {getStatus()}
+                </Text>
+                <Text style={styles.dropletInfo}>
                     RAM: {humanFriendlySize(this.props.droplet.memory * 1024 * 1024)}
                 </Text>
 
@@ -80,6 +96,7 @@ export class SingleDropletCard extends React.Component<{
                 <Text style={styles.dropletInfo}>
                     Created: <TimeAgo time={this.props.droplet.created_at}/>
                 </Text>
+
 
                 <View style={styles.cardButtonsContainer}>
                     {this.props.droplet.status === "active" && <><Button
@@ -127,6 +144,27 @@ export class SingleDropletCard extends React.Component<{
                         title={'Power on'}
                         onPress={() => this.powerOnDroplet(this.props.droplet.id)}
                     /><View style={{height: 10}}/></>}
+
+                    {
+                        (
+                            this.props.droplet.status === "off" ||
+                            this.props.droplet.status === "active" ||
+                            this.props.droplet.status === "archive"
+                        )
+                        && <><Button
+                            icon={<Icon
+                                style={styles.cardButtonIcon}
+                                type='font-awesome'
+                                name={'trash'}
+                                color='#fff'
+                                containerStyle={{
+                                    marginRight: 10
+                                }}
+                                accessibilityLabel={'Delete'}
+                            />}
+                            title={'Delete'}
+                            onPress={() => this.deleteDroplet(this.props.droplet.id)}
+                        /><View style={{height: 10}}/></>}
 
                 </View>
 
@@ -181,6 +219,23 @@ export class SingleDropletCard extends React.Component<{
                 Snackbar.show({
                     duration: 3000,
                     text: "Droplet failed to power on",
+                });
+            })
+    }
+
+    private deleteDroplet(id: number) {
+        this.props.dropletsService
+            .deleteDroplet(id)
+            .then(value => {
+                Snackbar.show({
+                    duration: 3000,
+                    text: "Droplet delete initiated. Please allow up to 1 minute.",
+                });
+            })
+            .catch(reason => {
+                Snackbar.show({
+                    duration: 3000,
+                    text: "Droplet failed to delete",
                 });
             })
     }

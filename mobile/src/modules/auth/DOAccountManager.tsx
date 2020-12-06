@@ -66,11 +66,11 @@ export class DOAccountManager extends React.Component<{
             <Header
                 statusBarProps={{translucent: true}}
                 placement="left"
-                // leftComponent={{
-                //     icon: 'menu', color: '#fff', onPress: () => {
-                //         alert('bla')
-                //     }
-                // }}
+                leftComponent={{
+                    icon: 'menu',
+                    color: '#fff',
+                    onPress: () => this.props.navigation.toggleDrawer(),
+                }}
                 centerComponent={{text: 'DigitalOcean - Accounts', style: {color: '#fff'}}}
                 // rightComponent={{icon: 'home', color: '#fff'}}
             />
@@ -91,7 +91,7 @@ export class DOAccountManager extends React.Component<{
                                     flexGrow: 1,
                                 }}
                                 onPress={() => this.goToDropletListingForToken(item.alias)}>
-                                <Text>Name: {item.alias}</Text>
+                                <Text>{item.alias}</Text>
                             </TouchableHighlight>
                             <Button
                                 style={{}}
